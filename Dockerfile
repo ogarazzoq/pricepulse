@@ -17,9 +17,6 @@ WORKDIR /app
 RUN apk add --no-cache openssl libc6-compat
 
 # ----- 2. dependency layer -----
-# Install deps WITHOUT running lifecycle scripts. This lets the layer
-# stay cache-friendly: it only invalidates when package.json changes,
-# not when source code changes. Prisma is generated explicitly later.
 FROM base AS deps
 WORKDIR /app/apps/api
 COPY apps/api/package.json ./package.json
@@ -31,17 +28,8 @@ WORKDIR /app/apps/api
 COPY --from=deps /app/apps/api/node_modules ./node_modules
 COPY apps/api/ ./
 
-# Schema is now present — generate the typed Prisma client.
 RUN npx prisma generate
-
-# Compile TypeScript → dist/
 RUN npm run build
-
-# Drop dev deps. --ignore-scripts is important: without it, npm would
-# attempt to re-run `postinstall` (i.e. prisma generate) during prune
-# which can fail in odd environments. We've already generated the client
-# above; the artifacts under node_modules/.prisma/client are NOT npm
-# packages and therefore survive prune.
 RUN npm prune --omit=dev --ignore-scripts
 
 # ----- 4. runtime -----
@@ -58,10 +46,12 @@ COPY --from=build --chown=nestjs:nodejs /app/apps/api/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /app/apps/api/node_modules ./node_modules
 COPY --from=build --chown=nestjs:nodejs /app/apps/api/package.json ./package.json
 COPY --from=build --chown=nestjs:nodejs /app/apps/api/prisma ./prisma
+COPY --chown=nestjs:nodejs apps/api/scripts/start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 USER nestjs
 EXPOSE 4000
 
+# tini handles signal forwarding so SIGTERM gracefully shuts down Nest.
 ENTRYPOINT ["/sbin/tini", "--"]
-# `migrate deploy` is idempotent. Runs every container start.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["./start.sh"]
