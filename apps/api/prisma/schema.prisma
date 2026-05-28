@@ -1,0 +1,267 @@
+// =====================================================================
+// PricePulse — Prisma Schema
+// =====================================================================
+// Production-ready relational schema for a multi-marketplace price
+// comparison & alerting platform.
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================================
+// ENUMS
+// =====================================================================
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AlertCondition {
+  BELOW
+  ABOVE
+  PERCENT_DROP
+}
+
+enum AlertStatus {
+  ACTIVE
+  PAUSED
+  TRIGGERED
+  ARCHIVED
+}
+
+enum NotificationChannel {
+  EMAIL
+  TELEGRAM
+  IN_APP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+// =====================================================================
+// AUTH & USERS
+// =====================================================================
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String
+  name            String
+  avatarUrl       String?
+  role            UserRole @default(USER)
+
+  telegramChatId  String?
+  emailVerifiedAt DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  refreshTokens   RefreshToken[]
+  alerts          Alert[]
+  notifications   Notification[]
+
+  @@index([role])
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  userId      String
+  tokenHash   String   @unique
+  userAgent   String?
+  ipAddress   String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// =====================================================================
+// MARKETPLACES & PRODUCTS
+// =====================================================================
+
+model Marketplace {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  logoUrl     String?
+  websiteUrl  String?
+  isActive    Boolean  @default(true)
+  // Currency the marketplace primarily reports in.
+  baseCurrency String  @default("USD")
+  // Soft config blob (rate-limit, headers etc.)
+  config      Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  offers      ProductOffer[]
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  title        String
+  description  String?
+  brand        String?
+  category     String?
+  imageUrl     String?
+
+  // Cached aggregates updated by the price-sync job.
+  lowestPrice   Decimal? @db.Decimal(12, 2)
+  highestPrice  Decimal? @db.Decimal(12, 2)
+  averagePrice  Decimal? @db.Decimal(12, 2)
+  views         Int      @default(0)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  offers       ProductOffer[]
+  alerts       Alert[]
+
+  @@index([category])
+  @@index([title])
+}
+
+model ProductOffer {
+  id              String   @id @default(cuid())
+  productId       String
+  marketplaceId   String
+
+  // External marketplace identifiers
+  externalId      String
+  externalUrl     String?
+
+  currentPrice    Decimal  @db.Decimal(12, 2)
+  originalPrice   Decimal? @db.Decimal(12, 2)
+  discountPercent Decimal? @db.Decimal(5, 2)
+  currency        String   @default("USD")
+
+  rating          Decimal? @db.Decimal(3, 2)
+  ratingCount     Int?
+  inStock         Boolean  @default(true)
+  stockCount      Int?
+
+  lastSyncedAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  marketplace     Marketplace @relation(fields: [marketplaceId], references: [id], onDelete: Cascade)
+  snapshots       PriceSnapshot[]
+
+  @@unique([marketplaceId, externalId])
+  @@index([productId])
+  @@index([currentPrice])
+}
+
+// =====================================================================
+// PRICE HISTORY
+// =====================================================================
+
+model PriceSnapshot {
+  id              String   @id @default(cuid())
+  productOfferId  String
+
+  price           Decimal  @db.Decimal(12, 2)
+  currency        String   @default("USD")
+  inStock         Boolean  @default(true)
+
+  recordedAt      DateTime @default(now())
+
+  productOffer    ProductOffer @relation(fields: [productOfferId], references: [id], onDelete: Cascade)
+
+  @@index([productOfferId, recordedAt])
+  @@index([recordedAt])
+}
+
+// =====================================================================
+// ALERTS & NOTIFICATIONS
+// =====================================================================
+
+model Alert {
+  id                String      @id @default(cuid())
+  userId            String
+  productId         String
+  marketplaceId     String?
+
+  condition         AlertCondition
+  threshold         Decimal     @db.Decimal(12, 2)
+  currency          String      @default("USD")
+  channels          NotificationChannel[]
+
+  status            AlertStatus @default(ACTIVE)
+  lastEvaluatedAt   DateTime?
+  lastTriggeredAt   DateTime?
+  triggeredCount    Int         @default(0)
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product           Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  notifications     Notification[]
+
+  @@index([userId, status])
+  @@index([productId])
+}
+
+model Notification {
+  id          String              @id @default(cuid())
+  userId      String
+  alertId     String?
+  channel     NotificationChannel
+  status      NotificationStatus  @default(PENDING)
+  subject     String
+  body        String
+  metadata    Json?
+  sentAt      DateTime?
+  failedAt    DateTime?
+  errorMessage String?
+  createdAt   DateTime            @default(now())
+
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alert       Alert?              @relation(fields: [alertId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+}
+
+// =====================================================================
+// JOBS
+// =====================================================================
+
+model JobLog {
+  id          String    @id @default(cuid())
+  queue       String
+  jobName     String
+  status      JobStatus
+  payload     Json?
+  result      Json?
+  errorMessage String?
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+
+  @@index([queue, status])
+  @@index([startedAt])
+}
