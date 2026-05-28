@@ -14,6 +14,7 @@
     "build": "npm-run-all -s build:api build:web",
     "build:api": "npm --workspace @pricepulse/api run build",
     "build:web": "npm --workspace @pricepulse/web run build",
+    "setup": "npm install && npm --workspace @pricepulse/api run prisma:generate",
     "db:migrate": "npm --workspace @pricepulse/api run prisma:migrate",
     "db:seed": "npm --workspace @pricepulse/api run prisma:seed",
     "lint": "npm-run-all -p lint:api lint:web",
