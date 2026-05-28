@@ -1,9 +1,13 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   images: {
-    // Allow product images from upstream marketplaces.
     remotePatterns: [
       { protocol: 'https', hostname: 'fakestoreapi.com' },
       { protocol: 'https', hostname: 'cdn.dummyjson.com' },
@@ -14,6 +18,18 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts'],
+  },
+  // Webpack alias is registered explicitly so resolution does NOT depend on
+  // tsconfig.paths being correctly picked up by the next/typescript plugin.
+  // This is critical on Vercel monorepo builds where tsconfig path resolution
+  // can be inconsistent if any path entry points outside the project root.
+  webpack(config) {
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      '@': path.resolve(__dirname, 'src'),
+    };
+    return config;
   },
   async headers() {
     return [

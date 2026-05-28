@@ -144,9 +144,13 @@ After seeding you can log in with:
 ## 2. Provision Vercel frontend
 
 1. Go to https://vercel.com/new → **Import Git Repository** → pick `pricepulse`.
-2. **Framework preset**: Next.js
+2. **Framework preset**: Next.js (auto-detected from `apps/web/vercel.json`)
 3. **Root Directory**: `apps/web`  ← critical, monorepo
-4. **Build & Output Settings**: leave defaults (Vercel reads `apps/web/vercel.json`)
+4. **Build & Output Settings**: leave at Vercel defaults. Vercel will:
+   - Clone the full repo
+   - Detect root `package.json` workspaces
+   - Run `npm install` at the repo root (hoists deps)
+   - Run `next build` in `apps/web/`
 5. **Environment Variables**:
 
 | Variable | Value |
