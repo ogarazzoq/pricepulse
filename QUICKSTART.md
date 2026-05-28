@@ -1,0 +1,65 @@
+# PricePulse — Quick Start
+
+## 1. Prerequisites
+
+- Node.js ≥ 20
+- PostgreSQL ≥ 15  (or `docker compose up -d postgres redis`)
+- Redis ≥ 7
+
+## 2. Bootstrap
+
+```bash
+# Install workspaces
+npm install
+
+# Copy env files
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
+
+# (Optional) start postgres + redis via docker
+docker compose up -d
+
+# Generate Prisma client + run migrations
+npm --workspace @pricepulse/api run prisma:generate
+npm --workspace @pricepulse/api run prisma:migrate
+
+# Seed marketplaces + admin/demo users
+npm --workspace @pricepulse/api run prisma:seed
+```
+
+## 3. Run
+
+```bash
+# Run both API (4000) and web (3000) in parallel
+npm run dev
+```
+
+- Web: http://localhost:3000
+- API: http://localhost:4000/api/v1
+- Swagger: http://localhost:4000/api/v1/docs
+
+## 4. Default credentials
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | admin@pricepulse.io | Admin@12345 |
+| User  | demo@pricepulse.io  | Demo@12345  |
+
+## 5. Common tasks
+
+| Task | Command |
+| --- | --- |
+| Type-check & lint | `npm run lint` |
+| Build everything | `npm run build` |
+| Open Prisma Studio | `npx --workspace @pricepulse/api prisma studio` |
+| Trigger price-sync manually | `POST /api/v1/admin/jobs/price-sync/trigger` (admin) |
+| Evaluate alerts manually | `POST /api/v1/admin/jobs/alerts/trigger` (admin) |
+
+## 6. First-run checklist
+
+1. Sign in as **admin**.
+2. Go to **Admin → Run price sync now**. This populates products + first price snapshots.
+3. Sign in as **demo user**.
+4. Open **Products**, search `phone` or `laptop`.
+5. Open any product, click **Create alert**, set a threshold below current price.
+6. Trigger **Admin → Evaluate alerts now**. The notification will land in **Notifications**.

@@ -1,0 +1,17 @@
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/coverage
+**/.env
+**/.env.*
+**/*.log
+.git
+.gitignore
+.vscode
+.idea
+README.md
+QUICKSTART.md
+docs
+apps/web
+packages

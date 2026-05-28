@@ -1,0 +1,30 @@
+{
+  "name": "pricepulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PricePulse — Multi-Marketplace Price Comparison & Smart Alerts Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm-run-all -p dev:api dev:web",
+    "dev:api": "npm --workspace @pricepulse/api run start:dev",
+    "dev:web": "npm --workspace @pricepulse/web run dev",
+    "build": "npm-run-all -s build:api build:web",
+    "build:api": "npm --workspace @pricepulse/api run build",
+    "build:web": "npm --workspace @pricepulse/web run build",
+    "db:migrate": "npm --workspace @pricepulse/api run prisma:migrate",
+    "db:seed": "npm --workspace @pricepulse/api run prisma:seed",
+    "lint": "npm-run-all -p lint:api lint:web",
+    "lint:api": "npm --workspace @pricepulse/api run lint",
+    "lint:web": "npm --workspace @pricepulse/web run lint"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
