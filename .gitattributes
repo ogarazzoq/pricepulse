@@ -1,0 +1,5 @@
+# Force LF line endings on shell scripts so Linux containers can execute them.
+*.sh text eol=lf
+
+# Default: respect repository defaults
+* text=auto

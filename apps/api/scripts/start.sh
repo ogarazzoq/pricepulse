@@ -1,24 +1,30 @@
 #!/bin/sh
 # ============================================================
-# PricePulse API — production entrypoint script
-# ============================================================
-# Why a script (and not chained `&&` in CMD)?
+# PricePulse API — production entrypoint
 #
-# Railway (and many orchestrators) override the Docker CMD with
-# their own start-command string. If that string is split into
-# argv without a shell wrapper, operators like `&&` are passed
-# as literal arguments and the chain silently breaks. Routing
-# everything through this script keeps startup deterministic.
+# This script is the runtime CMD. It must NOT depend on:
+#   - npm workspaces  (the runtime image isn't a monorepo)
+#   - npx PATH lookup (we resolve the binary directly)
+#   - any dev dependency
 # ============================================================
 
-set -e   # fail fast on any error
-set -u   # treat unset variables as errors
+set -e
+set -u
+
+PRISMA_BIN="./node_modules/.bin/prisma"
 
 echo "▶ PricePulse API starting"
 echo "  NODE_ENV=${NODE_ENV:-unset}  PORT=${PORT:-unset}"
+echo "  cwd=$(pwd)"
+
+if [ ! -x "$PRISMA_BIN" ]; then
+  echo "✖ Prisma binary not found at $PRISMA_BIN" >&2
+  echo "  This indicates the production image was built without 'prisma' in dependencies." >&2
+  exit 1
+fi
 
 echo "▶ Applying Prisma migrations (idempotent)…"
-npx --no-install prisma migrate deploy
+"$PRISMA_BIN" migrate deploy
 
 echo "▶ Booting NestJS"
 exec node dist/main.js

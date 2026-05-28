@@ -1,15 +1,38 @@
+# Keep the build context lean and the runtime image backend-only.
+# This image is the API only; the frontend is deployed to Vercel.
+
+# Build artifacts
 **/node_modules
 **/dist
 **/.next
 **/.turbo
 **/coverage
+**/.cache
+
+# Secrets / local files
 **/.env
 **/.env.*
 **/*.log
+
+# VCS / editor
 .git
 .gitignore
 .vscode
 .idea
+.gitattributes
+
+# Docs (not needed for runtime)
 README.md
 QUICKSTART.md
+DEPLOYMENT.md
 docs
+
+# Other workspaces — explicitly excluded so the API image
+# never sees them, even if a future Dockerfile change copied
+# repo root by accident.
+apps/web
+packages
+
+# Nothing in the API src/ should be skipped, but kill obvious noise
+**/*.test.ts
+**/*.spec.ts
