@@ -13,7 +13,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { user, hydrated, setUser, clear } = useAuthStore();
 
-  // Run me-fetch only after hydration AND only if a token exists.
   const me = useQuery({
     queryKey: ['me'],
     queryFn: authApi.me,
@@ -22,7 +21,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     retry: false,
   });
 
-  // Redirect logic isolated to a single effect to avoid flash.
   useEffect(() => {
     if (!hydrated) return;
     const token = tokenStorage.getAccess();
@@ -37,25 +35,37 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [hydrated, me.isError, router, clear]);
 
-  // Hydrate the auth store from the verified profile.
   useEffect(() => {
     if (me.data) setUser(me.data);
   }, [me.data, setUser]);
 
   if (!hydrated || (!user && !me.data)) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center" role="status" aria-live="polite">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <span className="sr-only">Loading your workspace…</span>
       </div>
     );
   }
 
   return (
     <div className="flex min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+      >
+        Skip to main content
+      </a>
       <DashboardSidebar />
-      <div className="flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <DashboardHeader />
-        <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">{children}</main>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8"
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

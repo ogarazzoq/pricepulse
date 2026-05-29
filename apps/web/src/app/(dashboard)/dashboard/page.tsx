@@ -20,21 +20,21 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Overview</h1>
           <p className="text-sm text-muted-foreground">
             A live snapshot of your tracked products, alerts, and the market.
           </p>
         </div>
         <Badge variant="outline" className="bg-card/60">
-          <Sparkles className="h-3 w-3" /> Refreshes every 30s
+          <Sparkles className="h-3 w-3" aria-hidden="true" /> Refreshes every 30s
         </Badge>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats — 2 cols on mobile, 4 on desktop */}
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {isLoading ? (
           [...Array(4)].map((_, i) => <Skeleton key={i} className="h-28" />)
         ) : (
@@ -67,13 +67,11 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recent price drops</CardTitle>
-              <CardDescription>Last 7 days across all marketplaces</CardDescription>
-            </div>
+          <CardHeader>
+            <CardTitle>Recent price drops</CardTitle>
+            <CardDescription>Last 7 days across all marketplaces</CardDescription>
           </CardHeader>
           <CardContent>
             <OverviewTrendChart />
@@ -92,18 +90,20 @@ export default function DashboardPage() {
                   key={m.marketplaceSlug}
                   className="flex items-center justify-between rounded-lg border border-border/40 bg-card/40 px-3 py-2.5"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15 text-[11px] font-semibold text-primary">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-[11px] font-semibold text-primary">
                       #{i + 1}
                     </div>
-                    <div className="leading-tight">
-                      <p className="text-sm font-medium">{m.marketplaceName}</p>
+                    <div className="min-w-0 leading-tight">
+                      <p className="truncate text-sm font-medium">{m.marketplaceName}</p>
                       <p className="text-[11px] text-muted-foreground">
                         {formatNumber(m.productCount)} products
                       </p>
                     </div>
                   </div>
-                  <span className="font-mono text-sm font-medium">{formatCurrency(m.averagePrice)}</span>
+                  <span className="font-mono text-sm font-medium tabular-nums">
+                    {formatCurrency(m.averagePrice)}
+                  </span>
                 </div>
               ))
             ) : (
@@ -113,7 +113,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Biggest discounts</CardTitle>
@@ -125,19 +125,29 @@ export default function DashboardPage() {
                 <Link
                   key={d.productId}
                   href={`/products/${d.productId}`}
-                  className="flex items-center gap-3 rounded-lg border border-border/40 bg-card/40 px-3 py-2.5 transition hover:border-primary/30 hover:bg-accent/40"
+                  className="ring-focus flex items-center gap-3 rounded-lg border border-border/40 bg-card/40 px-3 py-2.5 transition hover:border-primary/30 hover:bg-accent/40"
                 >
-                  <div className="relative h-12 w-12 overflow-hidden rounded-md bg-muted">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-muted">
                     {d.imageUrl && (
-                      <Image src={d.imageUrl} alt={d.title} fill className="object-contain p-1" sizes="48px" />
+                      <Image
+                        src={d.imageUrl}
+                        alt=""
+                        fill
+                        sizes="48px"
+                        className="object-contain p-1"
+                      />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{d.title}</p>
-                    <p className="text-[11px] text-muted-foreground">{d.marketplaceSlug}</p>
+                    <p className="text-[11px] text-muted-foreground capitalize">
+                      {d.marketplaceSlug}
+                    </p>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="font-mono text-sm font-semibold">{formatCurrency(d.currentPrice)}</span>
+                    <span className="font-mono text-sm font-semibold tabular-nums">
+                      {formatCurrency(d.currentPrice)}
+                    </span>
                     <Badge variant="success">−{d.discountPercent.toFixed(0)}%</Badge>
                   </div>
                 </Link>
@@ -159,23 +169,34 @@ export default function DashboardPage() {
                 <Link
                   key={`${r.productId}-${i}`}
                   href={`/products/${r.productId}`}
-                  className="flex items-center gap-3 rounded-lg border border-border/40 bg-card/40 px-3 py-2.5 transition hover:border-emerald-500/30 hover:bg-accent/40"
+                  className="ring-focus flex items-center gap-3 rounded-lg border border-border/40 bg-card/40 px-3 py-2.5 transition hover:border-emerald-500/30 hover:bg-accent/40"
                 >
-                  <div className="relative h-12 w-12 overflow-hidden rounded-md bg-muted">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-muted">
                     {r.imageUrl && (
-                      <Image src={r.imageUrl} alt={r.title} fill className="object-contain p-1" sizes="48px" />
+                      <Image
+                        src={r.imageUrl}
+                        alt=""
+                        fill
+                        sizes="48px"
+                        className="object-contain p-1"
+                      />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{r.title}</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground capitalize">
                       {r.marketplaceSlug} ·{' '}
-                      {new Date(r.droppedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {new Date(r.droppedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </p>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="font-mono text-sm font-semibold">{formatCurrency(r.currentPrice)}</span>
-                    <span className="text-[11px] text-emerald-500">
+                    <span className="font-mono text-sm font-semibold tabular-nums">
+                      {formatCurrency(r.currentPrice)}
+                    </span>
+                    <span className="text-[11px] text-emerald-500 tabular-nums">
                       ↓ {formatCurrency(r.previousPrice - r.currentPrice)}
                     </span>
                   </div>

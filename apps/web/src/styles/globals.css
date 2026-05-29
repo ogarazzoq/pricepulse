@@ -83,6 +83,7 @@
   html, body {
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1, 'ss01' 1;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     background-image: radial-gradient(
@@ -91,6 +92,18 @@
         transparent 40%
       ),
       radial-gradient(800px circle at 100% 0%, hsl(142 76% 45% / 0.05), transparent 40%);
+  }
+
+  /* Better tap targets on iOS */
+  button, [role='button'], [type='button'], [type='submit'], a {
+    touch-action: manipulation;
+  }
+
+  /* Prevent iOS auto-zooming on input focus */
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -102,7 +115,7 @@
     @apply bg-card/80 backdrop-blur-2xl border border-border/80;
   }
   .ring-focus {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
   .skeleton {
     @apply relative overflow-hidden bg-muted rounded-md;
@@ -120,6 +133,32 @@
   }
   .gradient-text {
     @apply bg-gradient-to-r from-brand-400 via-fuchsia-400 to-emerald-400 bg-clip-text text-transparent;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Hide scrollbars on horizontal-scroll chip rows */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  /* Reduced motion respect */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

@@ -16,6 +16,7 @@ export interface ProductOffer {
   originalPrice?: number | null;
   discountPercent?: number | null;
   currency: string;
+  priceAvailable?: boolean;
   rating?: number | null;
   ratingCount?: number | null;
   inStock: boolean;
