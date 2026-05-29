@@ -101,6 +101,9 @@ In the api service → **Variables** tab, set:
 | `CORS_ORIGIN` | `https://your-vercel-domain.vercel.app` (set after step 2) |
 | `PRICE_SYNC_CRON` | `0 */2 * * *` |
 | `ALERT_EVALUATE_CRON` | `*/15 * * * *` |
+| `BOOTSTRAP_ADMIN_EMAIL` | the email of your initial admin (e.g. `you@domain.com`) |
+| `BOOTSTRAP_ADMIN_PASSWORD` | a strong password — keep it in your password manager |
+| `BOOTSTRAP_ADMIN_NAME` | (optional) display name for the admin account |
 | `TELEGRAM_BOT_TOKEN` | (optional — leave empty for dry-run mode) |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | (optional) |
 
@@ -117,27 +120,25 @@ Push a commit, or click **Deploy** on the api service. The build will:
 3. Boot Nest on port 4000
 4. Healthcheck hits `/api/v1/health` → expects `{ "status": "healthy" }`
 
-### 1f. Seed (one-time)
+### 1f. Initial admin account
 
-The seed inserts default marketplaces and the demo accounts. Two options:
+The API runs an idempotent **bootstrap step on every boot**. If you set:
 
-**Option A — Railway shell (recommended):**
+- `BOOTSTRAP_ADMIN_EMAIL`
+- `BOOTSTRAP_ADMIN_PASSWORD`
 
-```bash
-railway link            # pick the api service
-railway run npx prisma db seed
+…the bootstrap creates that admin user, and on every subsequent restart it will re-sync the password to whatever those env vars currently hold. Marketplaces (FakeStore, DummyJSON) are also auto-created.
+
+Look for these lines in the Railway logs after deploy:
+
+```
+[BootstrapService] Marketplaces ready: 2 created, 0 kept
+[BootstrapService] Admin user "you@domain.com" bootstrapped/updated.
 ```
 
-**Option B — One-shot deploy variable:**
+To rotate the admin password later: change `BOOTSTRAP_ADMIN_PASSWORD` on Railway → save → Railway redeploys → new password is active. Old sessions remain valid until their refresh tokens expire.
 
-Set `RUN_SEED=true` and modify the start command (manual). For most cases, option A is cleaner.
-
-After seeding you can log in with:
-
-- `admin@pricepulse.io / Admin@12345`
-- `demo@pricepulse.io / Demo@12345`
-
-> **Change those passwords immediately in production.**
+> **Why not `prisma db seed`?** Production runtime images strip dev dependencies (including `tsx`, the seed runner). Doing the bootstrap in-process is safer, more idempotent, and avoids shipping demo passwords in code.
 
 ---
 

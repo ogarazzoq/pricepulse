@@ -52,6 +52,19 @@ class EnvSchema {
   @IsOptional()
   @IsString()
   SMTP_HOST?: string;
+
+  // Optional bootstrap: if set, an admin user is upserted on every boot.
+  @IsOptional()
+  @IsString()
+  BOOTSTRAP_ADMIN_EMAIL?: string;
+
+  @IsOptional()
+  @IsString()
+  BOOTSTRAP_ADMIN_PASSWORD?: string;
+
+  @IsOptional()
+  @IsString()
+  BOOTSTRAP_ADMIN_NAME?: string;
 }
 
 /**
