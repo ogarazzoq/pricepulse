@@ -57,6 +57,27 @@ export class BootstrapService implements OnApplicationBootstrap {
         websiteUrl: 'https://dummyjson.com',
         baseCurrency: 'USD',
       },
+      {
+        slug: 'escuelajs',
+        name: 'EscuelaJS Store',
+        logoUrl: 'https://api.escuelajs.co/favicon.ico',
+        websiteUrl: 'https://api.escuelajs.co',
+        baseCurrency: 'USD',
+      },
+      {
+        slug: 'openfoodfacts',
+        name: 'Open Food Facts',
+        logoUrl: 'https://world.openfoodfacts.org/images/icons/dist/logo.svg',
+        websiteUrl: 'https://world.openfoodfacts.org',
+        baseCurrency: 'USD',
+      },
+      {
+        slug: 'bestbuy',
+        name: 'Best Buy',
+        logoUrl: 'https://logo.clearbit.com/bestbuy.com',
+        websiteUrl: 'https://www.bestbuy.com',
+        baseCurrency: 'USD',
+      },
     ];
 
     let created = 0;

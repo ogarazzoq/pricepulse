@@ -53,6 +53,15 @@ class EnvSchema {
   @IsString()
   SMTP_HOST?: string;
 
+  // Marketplace API keys
+  @IsOptional()
+  @IsString()
+  BESTBUY_API_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  UPCITEMDB_API_KEY?: string;
+
   // Optional bootstrap: if set, an admin user is upserted on every boot.
   @IsOptional()
   @IsString()

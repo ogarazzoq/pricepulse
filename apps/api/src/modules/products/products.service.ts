@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { MarketplaceRegistry } from '../marketplaces/marketplace.registry';
+import { EnrichmentService } from '../marketplaces/enrichment.service';
 import {
   MarketplaceProvider,
   NormalizedProduct,
@@ -25,16 +26,11 @@ export class ProductsService {
     private readonly prisma: PrismaService,
     private readonly registry: MarketplaceRegistry,
     private readonly repo: ProductsRepository,
+    private readonly enrichment: EnrichmentService,
   ) {}
 
   // -------------------------------------------------------------------
   // Federated search across all active providers.
-  //
-  // 1. Query every provider in parallel.
-  // 2. Persist every normalized result so it has a real productId.
-  // 3. Re-fetch from DB to obtain authoritative offers (other marketplaces
-  //    may already have offers for the same slug from prior searches/syncs).
-  // 4. Apply server-side sort + filters.
   // -------------------------------------------------------------------
   async search(query: string, limit = 24, filters: SearchFilters = {}) {
     const trimmed = query?.trim() ?? '';
@@ -57,13 +53,18 @@ export class ProductsService {
       )
       .map((r) => r.value);
 
-    // Log provider failures (rejected) without breaking the request.
     settled
       .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
       .forEach((r) => this.logger.warn(`Search provider failed: ${r.reason?.message ?? r.reason}`));
 
-    // Persist synchronously (small N — at most ~50 per provider).
-    const persisted = new Set<string>(); // productIds
+    // Per-provider counts, used for the UI summary.
+    const byMarketplace = fulfilled.map((g) => ({
+      marketplace: { slug: g.provider.slug, name: g.provider.displayName },
+      count: g.items.length,
+    }));
+
+    // Persist synchronously
+    const persisted = new Set<string>();
     for (const { items } of fulfilled) {
       for (const np of items) {
         try {
@@ -76,47 +77,48 @@ export class ProductsService {
     }
 
     if (persisted.size === 0) {
-      return { query: trimmed, total: 0, items: [], byMarketplace: this.summarizeByMarketplace(fulfilled) };
+      return { query: trimmed, total: 0, items: [], byMarketplace };
     }
 
-    // Reload aggregated products with offers from DB.
+    // Fire-and-forget enrichment.
+    void Promise.allSettled(
+      Array.from(persisted).map((id) => this.enrichment.enrichProduct(id)),
+    );
+
+    // Reload and apply filters/sort.
     let products = await this.prisma.product.findMany({
       where: { id: { in: Array.from(persisted) } },
       include: { offers: { include: { marketplace: true } } },
     });
 
-    // Per-offer filters
     products = products
       .map((p) => ({
         ...p,
         offers: p.offers.filter((o) => {
           if (filters.marketplace && o.marketplace.slug !== filters.marketplace) return false;
           if (filters.inStock != null && o.inStock !== filters.inStock) return false;
-          const price = Number(o.currentPrice);
-          if (filters.minPrice != null && price < filters.minPrice) return false;
-          if (filters.maxPrice != null && price > filters.maxPrice) return false;
+          // Price filters only apply to offers with priceAvailable=true.
+          if (filters.minPrice != null) {
+            if (!o.priceAvailable) return false;
+            if (Number(o.currentPrice) < filters.minPrice) return false;
+          }
+          if (filters.maxPrice != null) {
+            if (!o.priceAvailable) return false;
+            if (Number(o.currentPrice) > filters.maxPrice) return false;
+          }
           return true;
         }),
       }))
       .filter((p) => p.offers.length > 0);
 
-    // Sort & serialize
     const items = products
       .map((p) => this.serialize(p))
       .sort(this.comparator(filters.sort ?? ProductSort.RELEVANCE, trimmed))
       .slice(0, limit);
 
-    return {
-      query: trimmed,
-      total: items.length,
-      items,
-      byMarketplace: this.summarizeByMarketplace(fulfilled),
-    };
+    return { query: trimmed, total: items.length, items, byMarketplace };
   }
 
-  // -------------------------------------------------------------------
-  // Get product by id (with offers)
-  // -------------------------------------------------------------------
   async getById(id: string) {
     const product = await this.repo.findById(id);
     if (!product) throw new NotFoundException('Product not found');
@@ -165,22 +167,10 @@ export class ProductsService {
       .map((p) => this.serialize(p))
       .sort(this.comparator(filters.sort ?? ProductSort.NEWEST));
 
-    return {
-      items: filtered,
-      total,
-      page,
-      pageSize,
-    };
+    return { items: filtered, total, page, pageSize };
   }
 
   // -------------------------------------------------------------------
-  // Internals
-  // -------------------------------------------------------------------
-
-  /**
-   * Upserts a product (by title-slug) and its marketplace offer.
-   * Also creates a price snapshot for time-series analytics.
-   */
   async upsertNormalizedProduct(np: NormalizedProduct) {
     const marketplace = await this.prisma.marketplace.findUnique({
       where: { slug: np.marketplaceSlug },
@@ -195,9 +185,12 @@ export class ProductsService {
       update: {
         title: np.title,
         description: np.description,
-        brand: np.brand,
-        category: np.category,
-        imageUrl: np.imageUrl,
+        // Don't overwrite existing brand/category/image with null from a partial source.
+        ...(np.brand ? { brand: np.brand } : {}),
+        ...(np.category ? { category: np.category } : {}),
+        ...(np.imageUrl ? { imageUrl: np.imageUrl } : {}),
+        ...(np.barcode ? { barcode: np.barcode } : {}),
+        ...(np.mpn ? { mpn: np.mpn } : {}),
       },
       create: {
         slug,
@@ -206,8 +199,12 @@ export class ProductsService {
         brand: np.brand,
         category: np.category,
         imageUrl: np.imageUrl,
+        barcode: np.barcode,
+        mpn: np.mpn,
       },
     });
+
+    const priceAvailable = np.priceAvailable !== false;
 
     const offer = await this.prisma.productOffer.upsert({
       where: {
@@ -222,6 +219,7 @@ export class ProductsService {
         originalPrice: np.originalPrice ?? null,
         discountPercent: np.discountPercent ?? null,
         currency: np.currency,
+        priceAvailable,
         rating: np.rating ?? null,
         ratingCount: np.ratingCount ?? null,
         inStock: np.inStock,
@@ -238,6 +236,7 @@ export class ProductsService {
         originalPrice: np.originalPrice ?? null,
         discountPercent: np.discountPercent ?? null,
         currency: np.currency,
+        priceAvailable,
         rating: np.rating ?? null,
         ratingCount: np.ratingCount ?? null,
         inStock: np.inStock,
@@ -245,27 +244,34 @@ export class ProductsService {
       },
     });
 
-    await this.prisma.priceSnapshot.create({
-      data: {
-        productOfferId: offer.id,
-        price: np.price,
-        currency: np.currency,
-        inStock: np.inStock,
-      },
-    });
+    // Only record a price snapshot when the source actually has a price.
+    if (priceAvailable) {
+      await this.prisma.priceSnapshot.create({
+        data: {
+          productOfferId: offer.id,
+          price: np.price,
+          currency: np.currency,
+          inStock: np.inStock,
+        },
+      });
+    }
 
-    // Update cached aggregates on the product (lowest/highest/avg).
     await this.recomputeProductAggregates(product.id);
-
     return { product, offer };
   }
 
   private async recomputeProductAggregates(productId: string) {
     const offers = await this.prisma.productOffer.findMany({
-      where: { productId },
+      where: { productId, priceAvailable: true },
       select: { currentPrice: true },
     });
-    if (offers.length === 0) return;
+    if (offers.length === 0) {
+      await this.prisma.product.update({
+        where: { id: productId },
+        data: { lowestPrice: null, highestPrice: null, averagePrice: null },
+      });
+      return;
+    }
     const prices = offers.map((o) => Number(o.currentPrice));
     const lowest = Math.min(...prices);
     const highest = Math.max(...prices);
@@ -276,28 +282,27 @@ export class ProductsService {
     });
   }
 
-  private summarizeByMarketplace(
-    fulfilled: { provider: MarketplaceProvider; items: NormalizedProduct[] }[],
-  ) {
-    return fulfilled.map((g) => ({
-      marketplace: { slug: g.provider.slug, name: g.provider.displayName },
-      count: g.items.length,
-    }));
-  }
-
+  /**
+   * Sort comparator. For price-based sorts, products without any priced offer
+   * (lowestPrice null) sink to the bottom regardless of direction.
+   */
   private comparator(sort: ProductSort, query?: string) {
     return (a: any, b: any) => {
-      const aLow = a.lowestPrice ?? Number.POSITIVE_INFINITY;
-      const bLow = b.lowestPrice ?? Number.POSITIVE_INFINITY;
-      const aHigh = a.highestPrice ?? 0;
-      const bHigh = b.highestPrice ?? 0;
+      const aPriced = a.lowestPrice != null;
+      const bPriced = b.lowestPrice != null;
+      const aLow = aPriced ? a.lowestPrice : Number.POSITIVE_INFINITY;
+      const bLow = bPriced ? b.lowestPrice : Number.POSITIVE_INFINITY;
+      const aHigh = aPriced ? a.highestPrice ?? 0 : -1;
+      const bHigh = bPriced ? b.highestPrice ?? 0 : -1;
       const aRating = this.bestRating(a);
       const bRating = this.bestRating(b);
 
       switch (sort) {
         case ProductSort.CHEAPEST:
+          if (aPriced !== bPriced) return aPriced ? -1 : 1;
           return aLow - bLow;
         case ProductSort.EXPENSIVE:
+          if (aPriced !== bPriced) return aPriced ? -1 : 1;
           return bHigh - aHigh;
         case ProductSort.RATING:
           return bRating - aRating;
@@ -306,7 +311,6 @@ export class ProductsService {
         case ProductSort.RELEVANCE:
         default:
           if (!query) return 0;
-          // Simple relevance: exact-match prefix > word-match > rating tiebreak
           const score = (t: string) => {
             const lower = (t ?? '').toLowerCase();
             const q = query.toLowerCase();
@@ -328,7 +332,8 @@ export class ProductsService {
   }
 
   private serialize(p: any) {
-    const prices = (p.offers ?? []).map((o: any) => Number(o.currentPrice));
+    const pricedOffers = (p.offers ?? []).filter((o: any) => o.priceAvailable !== false);
+    const prices = pricedOffers.map((o: any) => Number(o.currentPrice));
     const lowest = prices.length ? Math.min(...prices) : null;
     const highest = prices.length ? Math.max(...prices) : null;
     const average = prices.length
@@ -343,6 +348,8 @@ export class ProductsService {
       brand: p.brand,
       category: p.category,
       imageUrl: p.imageUrl,
+      barcode: p.barcode ?? null,
+      mpn: p.mpn ?? null,
       offers: (p.offers ?? []).map((o: any) => ({
         id: o.id,
         marketplace: {
@@ -357,6 +364,7 @@ export class ProductsService {
         originalPrice: o.originalPrice ? Number(o.originalPrice) : null,
         discountPercent: o.discountPercent ? Number(o.discountPercent) : null,
         currency: o.currency,
+        priceAvailable: o.priceAvailable !== false,
         rating: o.rating ? Number(o.rating) : null,
         ratingCount: o.ratingCount,
         inStock: o.inStock,

@@ -1,17 +1,21 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { FakeStoreProvider } from './providers/fakestore.provider';
 import { DummyJsonProvider } from './providers/dummyjson.provider';
+import { EscuelaJsProvider } from './providers/escuelajs.provider';
+import { OpenFoodFactsProvider } from './providers/openfoodfacts.provider';
+import { BestBuyProvider } from './providers/bestbuy.provider';
 import { MarketplaceProvider } from './providers/marketplace-provider.interface';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
 /**
  * Central registry of all marketplace providers.
  *
- * `all()` returns only providers that:
+ * `all()` returns providers that:
  *   1. Are wired in code, AND
- *   2. Have a corresponding `Marketplace` row with `isActive = true`.
+ *   2. Have a corresponding `Marketplace` row with `isActive = true`, AND
+ *   3. Self-report enabled (e.g. Best Buy without API key returns enabled=false).
  *
- * The active-set is cached for 60s to avoid hammering Postgres on every search.
+ * The active-set is cached for 60s.
  */
 @Injectable()
 export class MarketplaceRegistry {
@@ -24,14 +28,22 @@ export class MarketplaceRegistry {
     private readonly prisma: PrismaService,
     fakeStore: FakeStoreProvider,
     dummyJson: DummyJsonProvider,
+    escuelaJs: EscuelaJsProvider,
+    openFoodFacts: OpenFoodFactsProvider,
+    bestBuy: BestBuyProvider,
   ) {
     this.register(fakeStore);
     this.register(dummyJson);
+    this.register(escuelaJs);
+    this.register(openFoodFacts);
+    this.register(bestBuy);
   }
 
   register(provider: MarketplaceProvider) {
     this.providers.set(provider.slug, provider);
-    this.logger.log(`Registered marketplace provider: ${provider.slug}`);
+    this.logger.log(
+      `Registered ${provider.kind} provider: ${provider.slug} (enabled=${provider.enabled})`,
+    );
   }
 
   get(slug: string): MarketplaceProvider {
@@ -44,22 +56,25 @@ export class MarketplaceRegistry {
     return this.providers.has(slug);
   }
 
-  /** Synchronous: returns ALL registered providers (no DB filter). */
+  /** All providers (no active/enabled filter). */
   registered(): MarketplaceProvider[] {
     return Array.from(this.providers.values());
   }
 
-  /**
-   * Returns providers that are both registered AND active in the database.
-   * Falls back to all registered providers if the DB query fails.
-   */
+  /** Active in DB AND self-enabled. */
   async all(): Promise<MarketplaceProvider[]> {
     const active = await this.activeSlugs();
-    return Array.from(this.providers.values()).filter((p) => active.has(p.slug));
+    return Array.from(this.providers.values()).filter(
+      (p) => p.enabled && active.has(p.slug),
+    );
   }
 
   slugs(): string[] {
     return Array.from(this.providers.keys());
+  }
+
+  invalidateCache() {
+    this.activeCache = null;
   }
 
   private async activeSlugs(): Promise<Set<string>> {
@@ -79,10 +94,5 @@ export class MarketplaceRegistry {
       this.logger.warn(`activeSlugs query failed (${err?.message}); using all registered`);
       return new Set(this.providers.keys());
     }
-  }
-
-  /** Invalidate cache after admin toggle. */
-  invalidateCache() {
-    this.activeCache = null;
   }
 }
