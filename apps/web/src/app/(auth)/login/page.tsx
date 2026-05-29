@@ -65,7 +65,7 @@ export default function LoginPage() {
 
       <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
         Demo credentials are pre-filled. Use{' '}
-        <code className="font-mono text-foreground">"Your own created account"</code> for
+        <code className="font-mono text-foreground">Your own created account</code> for
         test.
       </div>
 
