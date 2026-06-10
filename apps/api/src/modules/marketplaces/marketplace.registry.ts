@@ -5,6 +5,7 @@ import { EscuelaJsProvider } from './providers/escuelajs.provider';
 import { OpenFoodFactsProvider } from './providers/openfoodfacts.provider';
 import { BestBuyProvider } from './providers/bestbuy.provider';
 import { OlchaProvider } from './providers/olcha.provider';
+import { AmazonProvider } from './providers/amazon.provider';
 import { MarketplaceProvider } from './providers/marketplace-provider.interface';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
@@ -33,6 +34,7 @@ export class MarketplaceRegistry {
     openFoodFacts: OpenFoodFactsProvider,
     bestBuy: BestBuyProvider,
     olcha: OlchaProvider,
+    amazon: AmazonProvider,
   ) {
     this.register(fakeStore);
     this.register(dummyJson);
@@ -40,6 +42,7 @@ export class MarketplaceRegistry {
     this.register(openFoodFacts);
     this.register(bestBuy);
     this.register(olcha);
+    this.register(amazon);
   }
 
   register(provider: MarketplaceProvider) {

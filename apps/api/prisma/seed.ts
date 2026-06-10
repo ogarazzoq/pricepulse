@@ -35,6 +35,13 @@ async function main() {
       websiteUrl: 'https://olcha.uz',
       baseCurrency: 'UZS',
     },
+    {
+      slug: 'amazon',
+      name: 'Amazon',
+      logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
+      websiteUrl: 'https://www.amazon.com',
+      baseCurrency: 'USD',
+    },
   ];
 
   for (const m of marketplaces) {
