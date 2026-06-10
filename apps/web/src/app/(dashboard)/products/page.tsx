@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Pagination, PaginationInfo } from '@/components/ui/pagination';
 import { ProductCatalogGrid } from '@/components/products/product-catalog-grid';
 import { ProductSortBar } from '@/components/products/product-sort-bar';
 import { productsApi, type ProductSort } from '@/features/products/products.api';
@@ -30,6 +31,8 @@ export default function ProductsPage() {
     params.get('marketplace') ?? undefined,
   );
   const [inStockOnly, setInStockOnly] = useState(params.get('inStock') === 'true');
+  const [page, setPage] = useState(parseInt(params.get('page') ?? '1', 10));
+  const pageSize = 24;
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -48,9 +51,10 @@ export default function ProductsPage() {
     if (sort && sort !== 'relevance') sp.set('sort', sort);
     if (marketplace) sp.set('marketplace', marketplace);
     if (inStockOnly) sp.set('inStock', 'true');
+    if (page > 1) sp.set('page', page.toString());
     const next = sp.toString() ? `${pathname}?${sp.toString()}` : pathname;
     startTransition(() => router.replace(next, { scroll: false }));
-  }, [debounced, sort, marketplace, inStockOnly, pathname, router]);
+  }, [debounced, sort, marketplace, inStockOnly, page, pathname, router]);
 
   const isSearching = debounced.trim().length >= 2;
 
@@ -69,10 +73,11 @@ export default function ProductsPage() {
   });
 
   const catalog = useQuery({
-    queryKey: ['products-catalog', sort, marketplace],
+    queryKey: ['products-catalog', sort, marketplace, page],
     queryFn: () =>
       productsApi.list({
-        pageSize: 24,
+        page,
+        pageSize,
         sort: sort === 'relevance' ? 'newest' : sort,
         marketplace,
       }),
@@ -87,9 +92,11 @@ export default function ProductsPage() {
   });
 
   const items = isSearching ? search.data?.items : catalog.data?.items;
+  const total = isSearching ? (search.data?.total ?? 0) : (catalog.data?.total ?? 0);
   const isLoading = isSearching ? search.isLoading : catalog.isLoading;
   const isFetching = isSearching ? search.isFetching : catalog.isFetching;
   const error = isSearching ? search.error : catalog.error;
+  const totalPages = Math.ceil(total / pageSize);
 
   const totalLabel = useMemo(() => {
     if (isSearching) return search.data ? `${search.data.total} matches` : '';
@@ -99,6 +106,7 @@ export default function ProductsPage() {
   const clearFilters = () => {
     setMarketplace(undefined);
     setInStockOnly(false);
+    setPage(1);
   };
 
   return (
@@ -243,6 +251,25 @@ export default function ProductsPage() {
           />
         )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && items && items.length > 0 && totalPages > 1 && !isSearching && (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <PaginationInfo
+            currentPage={page}
+            pageSize={pageSize}
+            totalItems={total}
+          />
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={(newPage) => {
+              setPage(newPage);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

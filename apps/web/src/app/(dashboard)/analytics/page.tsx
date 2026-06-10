@@ -62,11 +62,11 @@ export default function AnalyticsPage() {
                 <span className="sm:hidden">Avg. price</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-hidden">
               {isLoading ? (
                 <Skeleton className="h-[280px] sm:h-[300px]" />
               ) : (
-                <div className="h-[280px] sm:h-[300px] -mx-2 sm:mx-0">
+                <div className="h-[280px] sm:h-[300px] w-full overflow-hidden">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={data?.cheapestMarketplaces ?? []}
@@ -130,7 +130,7 @@ export default function AnalyticsPage() {
                 <Flame className="h-4 w-4 text-amber-500" /> Trending products
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 overflow-hidden">
               {isLoading ? (
                 [...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 sm:h-14" />)
               ) : (
@@ -143,14 +143,14 @@ export default function AnalyticsPage() {
                   >
                     <Link
                       href={`/products/${t.productId}`}
-                      className="flex items-center gap-2 sm:gap-3 rounded-lg border border-border/40 bg-card/40 px-2 sm:px-3 py-2 transition hover:border-primary/30 hover:shadow-sm"
+                      className="flex items-center gap-2 sm:gap-3 rounded-lg border border-border/40 bg-card/40 px-2 sm:px-3 py-2 transition hover:border-primary/30 hover:shadow-sm overflow-hidden"
                     >
-                      <span className="text-[10px] sm:text-xs text-muted-foreground w-4 sm:w-5 text-center font-mono">
+                      <span className="text-[10px] sm:text-xs text-muted-foreground w-4 sm:w-5 shrink-0 text-center font-mono">
                         #{i + 1}
                       </span>
                       <motion.div 
                         whileHover={{ scale: 1.1 }}
-                        className="relative h-9 w-9 sm:h-10 sm:w-10 overflow-hidden rounded-md bg-muted flex-shrink-0"
+                        className="relative h-9 w-9 sm:h-10 sm:w-10 overflow-hidden rounded-md bg-muted shrink-0"
                       >
                         {t.imageUrl && (
                           <Image 
@@ -162,7 +162,7 @@ export default function AnalyticsPage() {
                           />
                         )}
                       </motion.div>
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 overflow-hidden">
                         <p className="truncate text-xs sm:text-sm font-medium">{t.title}</p>
                         <p className="text-[10px] sm:text-[11px] text-muted-foreground">
                           {formatNumber(t.views)} views
