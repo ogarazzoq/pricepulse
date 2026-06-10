@@ -90,7 +90,7 @@ export default function CollectionsPage() {
   };
 
   const handleClick = (collection: Collection) => {
-    router.push(`/saved?collection=${collection.id}`);
+    router.push(`/collections/${collection.id}`);
   };
 
   const handleDialogClose = (open: boolean) => {

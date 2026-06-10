@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { CreateCollectionDialog } from '@/components/collections/create-collection-dialog';
 import { collectionsApi, type Collection } from '@/features/collections';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +33,7 @@ export function AddToCollectionDialog({
 }: AddToCollectionDialogProps) {
   const queryClient = useQueryClient();
   const [selectedCollections, setSelectedCollections] = useState<Set<string>>(new Set());
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const { data: collections, isLoading } = useQuery({
     queryKey: ['collections'],
@@ -176,10 +178,7 @@ export function AddToCollectionDialog({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                // TODO: Open create collection dialog
-                toast.info('Create collection feature coming soon');
-              }}
+              onClick={() => setCreateDialogOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
               New Collection
@@ -190,6 +189,12 @@ export function AddToCollectionDialog({
           </div>
         </div>
       </DialogContent>
+
+      {/* Create Collection Dialog */}
+      <CreateCollectionDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
     </Dialog>
   );
 }
