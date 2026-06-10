@@ -51,6 +51,7 @@ export default function SavedProductsPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
+  const [showAddToCollection, setShowAddToCollection] = useState(false);
   const [showCollections, setShowCollections] = useState(false);
   const pageSize = 24;
   const queryClient = useQueryClient();
@@ -81,6 +82,23 @@ export default function SavedProductsPage() {
     },
     onError: () => {
       toast.error('Failed to remove products');
+    },
+  });
+
+  const addToCollectionMutation = useMutation({
+    mutationFn: ({ collectionId, productIds }: { collectionId: string; productIds: string[] }) =>
+      collectionsApi.addProducts(collectionId, { productIds }),
+    onSuccess: (result, variables) => {
+      const collection = collections?.find(c => c.id === variables.collectionId);
+      toast.success(`Added ${result.added} products to ${collection?.name || 'collection'}`);
+      setSelectedIds([]);
+      setIsSelectionMode(false);
+      setShowAddToCollection(false);
+      queryClient.invalidateQueries({ queryKey: ['saved'] });
+      queryClient.invalidateQueries({ queryKey: ['collections'] });
+    },
+    onError: () => {
+      toast.error('Failed to add products to collection');
     },
   });
 
@@ -238,6 +256,18 @@ export default function SavedProductsPage() {
                       <CheckSquare className="mr-2 h-4 w-4" />
                       Select Multiple
                     </DropdownMenuItem>
+                    {collections && collections.length > 0 && selectedIds.length > 0 && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => setShowAddToCollection(true)}
+                          disabled={selectedIds.length === 0}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add to Collection
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </motion.div>
@@ -436,6 +466,83 @@ export default function SavedProductsPage() {
         open={collectionDialogOpen}
         onOpenChange={setCollectionDialogOpen}
       />
+
+      {/* Add to Collection Dialog */}
+      {showAddToCollection && collections && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+          onClick={() => setShowAddToCollection(false)}
+        >
+          <div 
+            className="fixed left-[50%] top-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%] p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Card>
+              <CardContent className="p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold">Add to Collection</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Select a collection for {selectedIds.length} product{selectedIds.length > 1 ? 's' : ''}
+                  </p>
+                </div>
+
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                  {collections.map((collection) => {
+                    const IconComponent = getCollectionIcon(collection.icon);
+                    return (
+                      <motion.button
+                        key={collection.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => addToCollectionMutation.mutate({ 
+                          collectionId: collection.id, 
+                          productIds: selectedIds 
+                        })}
+                        disabled={addToCollectionMutation.isPending}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:border-primary/40 hover:bg-accent/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                          borderLeftWidth: '4px',
+                          borderLeftColor: collection.color,
+                        }}
+                      >
+                        <div
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                          style={{ backgroundColor: `${collection.color}15` }}
+                        >
+                          <IconComponent className="h-5 w-5" style={{ color: collection.color }} />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="font-medium">{collection.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {collection.productCount} products
+                          </p>
+                        </div>
+                        {addToCollectionMutation.isPending && (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddToCollection(false)}
+                    disabled={addToCollectionMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
