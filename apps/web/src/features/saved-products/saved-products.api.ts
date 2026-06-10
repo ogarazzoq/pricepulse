@@ -7,6 +7,14 @@ import type {
   CreateSavedProductInput,
 } from './saved-products.types';
 
+export interface BulkOperationResult {
+  success: number;
+  failed: number;
+  total: number;
+  successIds: string[];
+  errors: Array<{ productId: string; error: string }>;
+}
+
 /**
  * Saved Products API Client
  * 
@@ -70,4 +78,26 @@ export const savedProductsApi = {
    */
   count: () =>
     api.get<SavedProductCountResponse>('/saved/count').then((r) => r.data),
+
+  /**
+   * Bulk save multiple products
+   * 
+   * @param productIds - Array of product IDs to save (max 50)
+   * @returns Bulk operation result with success/failure counts
+   */
+  bulkSave: (productIds: string[]) =>
+    api
+      .post<BulkOperationResult>('/saved/bulk/save', { productIds })
+      .then((r) => r.data),
+
+  /**
+   * Bulk unsave multiple products
+   * 
+   * @param productIds - Array of product IDs to unsave (max 50)
+   * @returns Bulk operation result with success/failure counts
+   */
+  bulkUnsave: (productIds: string[]) =>
+    api
+      .post<BulkOperationResult>('/saved/bulk/unsave', { productIds })
+      .then((r) => r.data),
 };
