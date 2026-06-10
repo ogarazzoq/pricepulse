@@ -14,12 +14,14 @@ import { ProductCatalogGrid } from '@/components/products/product-catalog-grid';
 import { ProductSortBar } from '@/components/products/product-sort-bar';
 import { productsApi, type ProductSort } from '@/features/products/products.api';
 import { marketplacesApi } from '@/features/marketplaces/marketplaces.api';
+import { useSearchCapture } from '@/features/search-history';
 
 export default function ProductsPage() {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
+  const { capture } = useSearchCapture();
 
   const [q, setQ] = useState(params.get('q') ?? '');
   const [debounced, setDebounced] = useState(q);
@@ -30,9 +32,15 @@ export default function ProductsPage() {
   const [inStockOnly, setInStockOnly] = useState(params.get('inStock') === 'true');
 
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(q), 350);
+    const t = setTimeout(() => {
+      setDebounced(q);
+      // Capture search when debounced query is set
+      if (q.trim().length >= 2) {
+        capture(q);
+      }
+    }, 350);
     return () => clearTimeout(t);
-  }, [q]);
+  }, [q, capture]);
 
   useEffect(() => {
     const sp = new URLSearchParams();

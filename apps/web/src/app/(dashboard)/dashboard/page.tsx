@@ -12,6 +12,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { OverviewTrendChart } from '@/components/dashboard/overview-trend-chart';
+import { RecentSearchesWidget } from '@/components/dashboard/recent-searches-widget';
+import { TopSearchesWidget } from '@/components/dashboard/top-searches-widget';
 
 export default function DashboardPage() {
   const { data, isLoading } = useQuery({
@@ -207,6 +209,12 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Search Widgets */}
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <RecentSearchesWidget />
+        <TopSearchesWidget />
       </div>
     </div>
   );
