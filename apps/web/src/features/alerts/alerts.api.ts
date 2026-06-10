@@ -15,6 +15,7 @@ export interface Alert {
   currency: string;
   channels: NotificationChannel[];
   status: AlertStatus;
+  triggeredCount?: number;
   lastEvaluatedAt?: string | null;
   lastTriggeredAt?: string | null;
   createdAt: string;
@@ -39,10 +40,28 @@ export interface UpdateAlertInput {
   status?: 'ACTIVE' | 'PAUSED'; // Only these transitions are allowed
 }
 
+export interface BulkAlertOperationResult {
+  success: number;
+  failed: number;
+  total: number;
+  successIds: string[];
+  errors: Array<{ alertId: string; error: string }>;
+}
+
 export const alertsApi = {
   list: () => api.get<Alert[]>('/alerts').then((r) => r.data),
   create: (input: CreateAlertInput) => api.post<Alert>('/alerts', input).then((r) => r.data),
   update: (id: string, body: UpdateAlertInput) =>
     api.patch<Alert>(`/alerts/${id}`, body).then((r) => r.data),
   archive: (id: string) => api.delete(`/alerts/${id}`).then((r) => r.data),
+  
+  // Bulk operations
+  bulkPause: (alertIds: string[]) => 
+    api.post<BulkAlertOperationResult>('/alerts/bulk/pause', { alertIds }).then((r) => r.data),
+  bulkResume: (alertIds: string[]) => 
+    api.post<BulkAlertOperationResult>('/alerts/bulk/resume', { alertIds }).then((r) => r.data),
+  bulkArchive: (alertIds: string[]) => 
+    api.post<BulkAlertOperationResult>('/alerts/bulk/archive', { alertIds }).then((r) => r.data),
+  bulkDelete: (alertIds: string[]) => 
+    api.post<BulkAlertOperationResult>('/alerts/bulk/delete', { alertIds }).then((r) => r.data),
 };
