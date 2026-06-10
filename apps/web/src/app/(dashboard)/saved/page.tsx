@@ -276,69 +276,173 @@ export default function SavedProductsPage() {
         </motion.div>
       </div>
 
-      {/* Collections Filter */}
+      {/* Collections Filter - Creative Dropdown */}
       {collections && collections.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="bg-muted/30">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-                <Button
-                  variant={!selectedCollectionId ? 'default' : 'ghost'}
-                  size="sm"
-                  asChild
-                  className="shrink-0"
-                >
-                  <Link href="/saved">
-                    <FolderOpen className="mr-2 h-4 w-4" />
-                    All Products
-                  </Link>
-                </Button>
-
-                {collections.map((collection) => {
-                  const IconComponent = getCollectionIcon(collection.icon);
-                  const isActive = selectedCollectionId === collection.id;
+          <Card className="glass relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+            <CardContent className="relative p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Filter className="h-5 w-5 text-primary" />
+                  </div>
                   
-                  return (
-                    <Button
-                      key={collection.id}
-                      variant={isActive ? 'default' : 'ghost'}
-                      size="sm"
-                      asChild
-                      className="shrink-0"
-                      style={{
-                        backgroundColor: isActive ? collection.color : undefined,
-                        borderColor: isActive ? collection.color : undefined,
-                      }}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 hover:bg-transparent justify-start min-w-0 flex-1"
+                      >
+                        <div className="text-left min-w-0 flex-1">
+                          {selectedCollectionId ? (
+                            (() => {
+                              const activeCollection = collections.find(c => c.id === selectedCollectionId);
+                              if (!activeCollection) return null;
+                              const IconComponent = getCollectionIcon(activeCollection.icon);
+                              return (
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div
+                                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
+                                    style={{ backgroundColor: `${activeCollection.color}15` }}
+                                  >
+                                    <IconComponent className="h-4 w-4" style={{ color: activeCollection.color }} />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium truncate">{activeCollection.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {activeCollection.productCount} {activeCollection.productCount === 1 ? 'product' : 'products'}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            <div>
+                              <p className="text-sm font-medium">All Products</p>
+                              <p className="text-xs text-muted-foreground">
+                                Showing all saved items
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="start" 
+                      className="w-[320px] max-h-[400px] overflow-y-auto glass"
+                      sideOffset={8}
                     >
-                      <Link href={`/saved?collection=${collection.id}`}>
-                        <IconComponent className="mr-2 h-4 w-4" />
-                        {collection.name}
-                        {collection.productCount > 0 && (
-                          <Badge
-                            variant="secondary"
-                            className="ml-2 h-5 px-1.5 text-xs"
+                      <div className="p-2 space-y-1">
+                        {/* All Products Option */}
+                        <Link href="/saved" className="block">
+                          <motion.div
+                            whileHover={{ x: 4 }}
+                            className={cn(
+                              "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                              !selectedCollectionId 
+                                ? "bg-primary/10 border-2 border-primary/30" 
+                                : "hover:bg-accent/50 border-2 border-transparent"
+                            )}
                           >
-                            {collection.productCount}
-                          </Badge>
-                        )}
-                      </Link>
-                    </Button>
-                  );
-                })}
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
+                              <FolderOpen className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">All Products</p>
+                              <p className="text-xs text-muted-foreground">
+                                {data?.total || 0} saved {data?.total === 1 ? 'item' : 'items'}
+                              </p>
+                            </div>
+                            {!selectedCollectionId && (
+                              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                            )}
+                          </motion.div>
+                        </Link>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCollectionDialogOpen(true)}
-                  className="shrink-0 gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">New</span>
-                </Button>
+                        <div className="my-2 h-px bg-border/50" />
+
+                        {/* Collection Options */}
+                        {collections.map((collection) => {
+                          const IconComponent = getCollectionIcon(collection.icon);
+                          const isActive = selectedCollectionId === collection.id;
+                          
+                          return (
+                            <Link 
+                              key={collection.id} 
+                              href={`/saved?collection=${collection.id}`}
+                              className="block"
+                            >
+                              <motion.div
+                                whileHover={{ x: 4 }}
+                                className={cn(
+                                  "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all",
+                                  isActive
+                                    ? "bg-accent/80 border-2 shadow-sm"
+                                    : "hover:bg-accent/50 border-2 border-transparent"
+                                )}
+                                style={{
+                                  borderColor: isActive ? collection.color : undefined,
+                                  backgroundColor: isActive ? `${collection.color}10` : undefined,
+                                }}
+                              >
+                                <div
+                                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                                  style={{ backgroundColor: `${collection.color}20` }}
+                                >
+                                  <IconComponent className="h-5 w-5" style={{ color: collection.color }} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate">{collection.name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {collection.productCount} {collection.productCount === 1 ? 'product' : 'products'}
+                                    {collection.description && ` • ${collection.description}`}
+                                  </p>
+                                </div>
+                                {isActive && (
+                                  <div 
+                                    className="h-2 w-2 rounded-full animate-pulse" 
+                                    style={{ backgroundColor: collection.color }}
+                                  />
+                                )}
+                              </motion.div>
+                            </Link>
+                          );
+                        })}
+
+                        <div className="my-2 h-px bg-border/50" />
+
+                        {/* New Collection Button */}
+                        <motion.button
+                          whileHover={{ x: 4 }}
+                          onClick={() => setCollectionDialogOpen(true)}
+                          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 border-2 border-dashed border-border/60 hover:border-primary/40 transition-colors"
+                        >
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                            <Plus className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="font-medium text-sm">Create Collection</p>
+                            <p className="text-xs text-muted-foreground">
+                              Organize your products
+                            </p>
+                          </div>
+                        </motion.button>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="hidden sm:flex items-center gap-2 shrink-0">
+                  <Badge variant="outline" className="bg-background/60 backdrop-blur-sm">
+                    {collections.length} {collections.length === 1 ? 'collection' : 'collections'}
+                  </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
