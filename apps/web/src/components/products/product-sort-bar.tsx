@@ -4,6 +4,13 @@ import { ArrowDown01, ArrowDown10, Check, Sparkles, Star, Clock, Store } from 'l
 import type { ProductSort } from '@/features/products/products.api';
 import type { Marketplace } from '@/features/marketplaces/marketplaces.api';
 import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select-custom';
 
 const SORT_OPTIONS: {
   id: ProductSort;
@@ -70,28 +77,27 @@ export function ProductSortBar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-        <div className="relative">
-          <label htmlFor="marketplace-filter" className="sr-only">
-            Filter by marketplace
-          </label>
-          <Store
-            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <select
-            id="marketplace-filter"
-            value={marketplace ?? ''}
-            onChange={(e) => onMarketplaceChange(e.target.value || undefined)}
-            className="ring-focus h-9 rounded-lg border border-input bg-background/60 pl-8 pr-3 text-xs"
+        <Select
+          value={marketplace ?? 'all'}
+          onValueChange={(value) => onMarketplaceChange(value === 'all' ? undefined : value)}
+        >
+          <SelectTrigger
+            className="w-[180px] h-9 text-xs"
+            icon={<Store className="h-3.5 w-3.5" />}
           >
-            <option value="">All marketplaces</option>
+            <SelectValue placeholder="All marketplaces" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" icon={<Store className="h-3.5 w-3.5" />}>
+              All marketplaces
+            </SelectItem>
             {marketplaces.map((m) => (
-              <option key={m.id} value={m.slug}>
+              <SelectItem key={m.id} value={m.slug}>
                 {m.name}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </div>
+          </SelectContent>
+        </Select>
 
         <button
           type="button"

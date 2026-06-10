@@ -36,34 +36,35 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 grid-bg" />
-        <div className="absolute inset-x-0 -top-32 h-[500px] bg-gradient-brand pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-brand pointer-events-none" />
+        <div className="absolute inset-0 floating-shapes" />
 
-        <div className="container relative pt-20 pb-24 lg:pt-28">
+        <div className="container relative z-10 pt-20 pb-24 lg:pt-28">
           <div className="mx-auto max-w-3xl text-center">
             <Badge variant="outline" className="bg-background/60 backdrop-blur">
               <Sparkles className="h-3 w-3" />
               <span>Real-time price intelligence</span>
             </Badge>
-            <h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-6xl">
+            <h1 className="mt-6 text-responsive-3xl font-semibold tracking-tight">
               Track every price.
               <br />
               <span className="gradient-text">Across every marketplace.</span>
             </h1>
-            <p className="mt-5 text-lg text-muted-foreground">
+            <p className="mt-5 text-responsive-lg text-muted-foreground">
               PricePulse aggregates products across multiple marketplaces, charts historical
               fluctuations, and pings you the second a deal hits your threshold.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button asChild variant="gradient" size="lg">
+              <Button asChild variant="gradient" size="lg" className="w-full sm:w-auto text-responsive-base">
                 <Link href="/register">
-                  Start tracking <ArrowRight className="h-4 w-4" />
+                  Start tracking <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto text-responsive-base">
                 <Link href="/login">Live demo</Link>
               </Button>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">
+            <p className="mt-4 text-responsive-sm text-muted-foreground">
               No credit card required · Free forever for personal use
             </p>
           </div>
@@ -78,30 +79,33 @@ export default function LandingPage() {
       <LandingStats />
 
       {/* FEATURES */}
-      <section id="features" className="container py-24">
-        <div className="mx-auto max-w-2xl text-center">
-          <Badge variant="outline">Why PricePulse</Badge>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Built for serious deal hunters
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Every feature is engineered to surface savings — fast, accurate, beautifully presented.
-          </p>
-        </div>
+      <section id="features" className="container py-24 relative">
+        <div className="absolute inset-0 dot-pattern opacity-20 pointer-events-none" />
+        <div className="relative z-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <Badge variant="outline">Why PricePulse</Badge>
+            <h2 className="mt-4 text-responsive-2xl font-semibold tracking-tight">
+              Built for serious deal hunters
+            </h2>
+            <p className="mt-3 text-responsive-base text-muted-foreground">
+              Every feature is engineered to surface savings — fast, accurate, beautifully presented.
+            </p>
+          </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <div
-              key={f.title}
-              className="glass rounded-xl p-6 transition hover:border-primary/40 hover:shadow-[0_8px_32px_-12px_hsl(var(--primary)/0.4)]"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                <f.icon className="h-5 w-5" />
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {features.map((f) => (
+              <div
+                key={f.title}
+                className="glow-card card-pattern rounded-xl p-6 transition hover:border-primary/40 hover-lift"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-responsive-base font-semibold">{f.title}</h3>
+                <p className="mt-1.5 text-responsive-sm text-muted-foreground">{f.description}</p>
               </div>
-              <h3 className="mt-4 font-semibold">{f.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{f.description}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
@@ -112,18 +116,19 @@ export default function LandingPage() {
       <section className="container py-24">
         <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/15 via-background to-emerald-500/15 p-10 sm:p-16">
           <div className="absolute inset-0 grid-bg opacity-30" />
-          <div className="relative max-w-xl">
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <div className="absolute inset-0 mesh-gradient opacity-60" />
+          <div className="relative z-10 max-w-xl">
+            <h2 className="text-responsive-2xl font-semibold tracking-tight">
               Stop overpaying. Start tracking.
             </h2>
-            <p className="mt-3 text-muted-foreground">
+            <p className="mt-3 text-responsive-base text-muted-foreground">
               Join thousands of smart shoppers and resellers who never miss a price drop.
             </p>
-            <div className="mt-6 flex gap-3">
-              <Button asChild variant="gradient" size="lg">
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <Button asChild variant="gradient" size="lg" className="w-full sm:w-auto text-responsive-base">
                 <Link href="/register">Create your free account</Link>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto text-responsive-base">
                 <Link href="/login">View demo dashboard</Link>
               </Button>
             </div>

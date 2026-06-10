@@ -71,7 +71,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - **Validates: Requirements 2.6, 2.8, 2.9**
     - Test count and check consistency across save/unsave sequences
 
-  - [-] 2.4 Implement SavedProductsController
+  - [ ] 2.4 Implement SavedProductsController
     - Implement `GET /api/v1/saved` with pagination (default page=1, pageSize=20, clamp pageSize≤100)
     - Implement `POST /api/v1/saved` returning 201 (new) or 200 (existing)
     - Implement `DELETE /api/v1/saved/:productId` returning 204
@@ -87,7 +87,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test IDOR prevention (user A cannot access user B's saves)
     - Test error responses (404 for non-existent product)
 
-  - [~] 2.6 Register SavedProductsModule in AppModule
+  - [ ] 2.6 Register SavedProductsModule in AppModule
     - Import SavedProductsModule in app.module.ts
     - Verify Swagger documentation generation
     - Verify module loads without errors
@@ -108,7 +108,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - **Validates: Requirements 6.3, 6.6, 6.7**
     - Test that normalize(q1) = normalize(q2) results in one row with searchCount=2
 
-  - [-] 3.3 Implement SearchHistoryService with cap enforcement
+  - [ ] 3.3 Implement SearchHistoryService with cap enforcement
     - Implement `capture()` with transactional upsert and cap logic
     - Per-user cap: read from env SEARCH_HISTORY_MAX_PER_USER (default 100, clamped 10-1000)
     - Evict oldest entry (by lastSearchedAt, then id) when at cap before insert
@@ -127,7 +127,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - **Validates: Requirements 2.3, 21.1, 21.2**
     - Test response length ≤ min(pageSize, cap)
 
-  - [~] 3.5 Implement SearchHistoryController
+  - [ ] 3.5 Implement SearchHistoryController
     - Implement `POST /api/v1/searches` calling capture()
     - Implement `GET /api/v1/searches` with pagination
     - Implement `GET /api/v1/searches/recent?limit=N`
@@ -144,7 +144,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test IDOR prevention (404 when deleting another user's entry)
     - Test clear-all operation safety
 
-  - [~] 3.7 Register SearchHistoryModule in AppModule
+  - [ ] 3.7 Register SearchHistoryModule in AppModule
     - Import SearchHistoryModule in app.module.ts
     - Verify Swagger documentation generation
     - Verify module loads without errors
@@ -173,7 +173,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Add validation for channels (array, min 1, unique)
     - _Requirements: 13.3, 13.4_
 
-  - [~] 4.4 Update AlertsController for new operations
+  - [ ] 4.4 Update AlertsController for new operations
     - Ensure PATCH endpoint accepts partial updates including status
     - Ensure DELETE endpoint calls archive() instead of physical delete
     - Return 404 for PATCH/DELETE on non-owned or ARCHIVED alerts
@@ -196,7 +196,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Use crypto.createHash('sha256').digest('hex').substring(0, 16)
     - _Requirements: 16.2, 16.3_
 
-  - [-] 5.3 Extend NotificationsService with dedup guard
+  - [ ] 5.3 Extend NotificationsService with dedup guard
     - Implement `isDuplicate()` method checking for existing notification within cooldown window
     - Query by userId, priceBucketHash (JSON path), createdAt >= cutoff
     - Use 2-second query timeout
@@ -213,28 +213,28 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test that distinct hashes produce distinct emails within window
 
 - [ ] 6. Backend: BullMQ notification-dispatch worker extensions
-  - [~] 6.1 Update notification-dispatch worker configuration
+  - [ ] 6.1 Update notification-dispatch worker configuration
     - Set attempts: 5
     - Set exponential backoff (5s, 10s, 20s, 40s, 80s)
     - Set removeOnComplete age: 24 hours
     - Set removeOnFail age: 7 days
     - _Requirements: 15.6, 17.4_
 
-  - [~] 6.2 Implement dedup guard in worker handle() method
+  - [ ] 6.2 Implement dedup guard in worker handle() method
     - Fetch notification with user and alert joins
     - Extract priceBucketHash from metadata
     - Call isDuplicate() before sending email
     - If duplicate, mark notification SENT with deduped=true, skip email
     - _Requirements: 16.3, 16.4_
 
-  - [~] 6.3 Implement email sending logic
+  - [ ] 6.3 Implement email sending logic
     - Extract product, user, alert data from notification
     - Build productUrl from APP_URL and product slug
     - Render email with template 'price-drop' and context data
     - Call MailerService.sendMail()
     - _Requirements: 18.1, 18.4, 18.5_
 
-  - [~] 6.4 Implement success/failure status updates
+  - [ ] 6.4 Implement success/failure status updates
     - On success: update notification status to SENT, set sentAt, save retryCount
     - On failure: update status to FAILED (if attempt 5) or keep PENDING
     - Save failedAt timestamp on final failure
@@ -251,14 +251,14 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test that dry-run never throws and ends SENT with dryRun=true
 
 - [ ] 7. Backend: Email templates
-  - [-] 7.1 Create price-drop email HTML template
+  - [ ] 7.1 Create price-drop email HTML template
     - Create Handlebars template at `apps/api/views/emails/price-drop.hbs`
     - Include product title, image, old/new price, savings, savings percent
     - Include marketplace name and product URL (clickable)
     - Use responsive email design (mobile-friendly)
     - _Requirements: 18.1, 18.4, 18.6_
 
-  - [-] 7.2 Create price-drop email text template
+  - [ ] 7.2 Create price-drop email text template
     - Create plain text version at `apps/api/views/emails/price-drop.txt`
     - Include all data from HTML version in readable format
     - Include clickable URL
@@ -272,7 +272,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - **Validates: Requirements 18.4, 18.5**
     - Test HTML and text bodies contain correct product URL
 
-- [~] 8. Checkpoint - Backend core functionality complete
+- [ ] 8. Checkpoint - Backend core functionality complete
   - Ensure all migrations apply successfully
   - Ensure all new endpoints return expected responses
   - Ensure all tests pass
@@ -308,7 +308,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - _Requirements: 8.1-8.10_
 
 - [ ] 10. Frontend: React Query hooks
-  - [-] 10.1 Implement useSavedProduct hook
+  - [ ] 10.1 Implement useSavedProduct hook
     - Create `lib/hooks/use-saved-products.ts`
     - Implement check query with key ['saved', productId]
     - Implement save mutation with optimistic updates
@@ -317,7 +317,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Return { isSaved, save, unsave, isPending }
     - _Requirements: 3.3, 3.4, 3.5_
 
-  - [-] 10.2 Implement useSavedProducts list hook
+  - [ ] 10.2 Implement useSavedProducts list hook
     - Implement query with key ['saved', { page, pageSize }]
     - Call getSavedProducts API function
     - Return paginated response
@@ -329,7 +329,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Auto-invalidate on save/unsave mutations
     - _Requirements: 5.2_
 
-  - [~] 10.4 Implement useSearchCapture hook with coalescing
+  - [ ] 10.4 Implement useSearchCapture hook with coalescing
     - Create `lib/hooks/use-search-history.ts`
     - Implement coalescing logic: track last submit time per normalized query
     - Only submit to API once per 5 seconds per normalized query
@@ -337,7 +337,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Silent failure (no error toast)
     - _Requirements: 6.4, 6.5, 6.8_
 
-  - [~] 10.5 Implement useSearches hooks
+  - [ ] 10.5 Implement useSearches hooks
     - Implement useSearches(page, pageSize) for paginated list
     - Implement useRecentSearches(limit) for recent widget
     - Implement useTopSearches(limit) for top widget
@@ -346,7 +346,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - _Requirements: 9.2, 9.6, 9.7_
 
 - [ ] 11. Frontend: HeartButton component
-  - [~] 11.1 Create HeartButton component
+  - [ ] 11.1 Create HeartButton component
     - Create `components/products/heart-button.tsx`
     - Use Radix Button primitive with icon variant
     - Render Heart icon from lucide-react
@@ -355,7 +355,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Handle toggle on click (save if unsaved, unsave if saved)
     - _Requirements: 3.1, 3.2_
 
-  - [~] 11.2 Add accessibility features to HeartButton
+  - [ ] 11.2 Add accessibility features to HeartButton
     - Set aria-pressed to reflect saved state
     - Set aria-label: "Save <title>" or "Remove <title> from saved"
     - Provide title attribute for tooltip
@@ -371,27 +371,27 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test disabled states (unauthenticated, in-flight)
 
 - [ ] 12. Frontend: Saved Products page
-  - [~] 12.1 Create /saved page route
+  - [ ] 12.1 Create /saved page route
     - Create `app/(dashboard)/saved/page.tsx`
     - Fetch saved products using useSavedProducts hook
     - Implement responsive grid layout (1/2/3/4 columns based on viewport)
     - Render product cards with HeartButton in saved state
     - _Requirements: 4.1, 4.3_
 
-  - [~] 12.2 Add pagination to saved page
+  - [ ] 12.2 Add pagination to saved page
     - Render pagination controls (previous/next, page indicator)
     - Disable previous on page 1, next on last page
     - Update URL search params on page change
     - _Requirements: 4.5_
 
-  - [~] 12.3 Add empty and loading states
+  - [ ] 12.3 Add empty and loading states
     - Render skeleton placeholders during initial load
     - Render EmptyState component when no saved products
     - Include CTA linking to /products in empty state
     - Handle fetch errors with retry control
     - _Requirements: 4.4, 4.9, 4.10_
 
-  - [~] 12.4 Handle unsave from saved page
+  - [ ] 12.4 Handle unsave from saved page
     - Implement optimistic removal from grid on unsave
     - If page becomes empty and previous page exists, navigate to previous page
     - Show toast on error and restore removed card
@@ -404,7 +404,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test responsive layout at multiple viewports
 
 - [ ] 13. Frontend: Sidebar badge
-  - [~] 13.1 Add SavedCountBadge to sidebar
+  - [ ] 13.1 Add SavedCountBadge to sidebar
     - Update `components/layout/sidebar.tsx`
     - Use useSavedCount hook
     - Render badge next to "Saved" entry
@@ -412,14 +412,14 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Show skeleton during initial load
     - _Requirements: 5.1, 5.2, 5.6, 5.7_
 
-  - [~] 13.2 Add accessibility for badge
+  - [ ] 13.2 Add accessibility for badge
     - Use aria-live="polite" for count updates
     - Render nothing when count is 0 (but keep "Saved" entry visible)
     - Silent failure if fetch fails (preserve cached count)
     - _Requirements: 5.4, 5.5, 5.8_
 
 - [ ] 14. Frontend: Search widgets
-  - [~] 14.1 Create RecentSearchesWidget component
+  - [ ] 14.1 Create RecentSearchesWidget component
     - Create `components/search/recent-searches-widget.tsx`
     - Use useRecentSearches(5) hook
     - Render list of recent searches ordered by lastSearchedAt
@@ -428,7 +428,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Show skeleton during load
     - _Requirements: 9.6, 9.8, 9.9, 9.10_
 
-  - [~] 14.2 Create TopSearchesWidget component
+  - [ ] 14.2 Create TopSearchesWidget component
     - Create `components/search/top-searches-widget.tsx`
     - Use useTopSearches(5) hook
     - Render list with searchCount badge
@@ -437,28 +437,28 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Show skeleton during load
     - _Requirements: 9.7, 9.8, 9.9, 9.10_
 
-  - [~] 14.3 Add widgets to dashboard
+  - [ ] 14.3 Add widgets to dashboard
     - Import widgets in `app/(dashboard)/dashboard/page.tsx`
     - Position in dashboard grid layout
     - Ensure responsive at 320, 375, 768, 1024, 1440+ px
     - _Requirements: 9.9_
 
 - [ ] 15. Frontend: Searches page
-  - [~] 15.1 Create /searches page route
+  - [ ] 15.1 Create /searches page route
     - Create `app/(dashboard)/searches/page.tsx`
     - Use useSearches hook with pagination
     - Render table/list with query, lastSearchedAt, searchCount columns
     - Make each row clickable to navigate to search results
     - _Requirements: 9.1, 9.2, 9.3_
 
-  - [~] 15.2 Add per-row delete action
+  - [ ] 15.2 Add per-row delete action
     - Add delete icon button to each row
     - Call useDeleteSearch mutation
     - Optimistically remove row from list
     - Show toast and restore on error
     - _Requirements: 9.5_
 
-  - [~] 15.3 Add clear-all action
+  - [ ] 15.3 Add clear-all action
     - Add "Clear all" button
     - Show confirmation dialog on click
     - Call useClearSearches mutation on confirm
@@ -472,21 +472,21 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test pagination
 
 - [ ] 16. Frontend: Product detail pages
-  - [~] 16.1 Create /products/[slug] canonical route
+  - [ ] 16.1 Create /products/[slug] canonical route
     - Create `app/(dashboard)/products/[slug]/page.tsx`
     - Fetch product data server-side via API with 10-second timeout
     - Return notFound() on 404 response
     - Render error boundary on non-404 failures
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
-  - [~] 16.2 Update /products/[id] legacy route to redirect
+  - [ ] 16.2 Update /products/[id] legacy route to redirect
     - Update `app/(dashboard)/products/[id]/page.tsx`
     - Fetch product to resolve slug
     - Issue 308 redirect to /products/[slug]
     - Return notFound() if product doesn't exist
     - _Requirements: 10.5, 10.6_
 
-  - [~] 16.3 Implement slug page metadata
+  - [ ] 16.3 Implement slug page metadata
     - Export generateMetadata function
     - Fetch product server-side (5-second timeout)
     - Set title: "<product title> — PricePulse" (cap at 70 chars)
@@ -496,7 +496,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Return safe defaults on 404 or fetch failure
     - _Requirements: 12.1-12.8_
 
-  - [~] 16.4 Build slug page hero section
+  - [ ] 16.4 Build slug page hero section
     - Render product image with 5-second timeout, fallback to placeholder
     - Render title (h1), description, brand, category
     - Render rating summary (average 0.0-5.0, review count)
@@ -504,25 +504,25 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Add canonical link tag to head
     - _Requirements: 11.1, 11.2, 10.7_
 
-  - [~] 16.5 Build slug page price stats section
+  - [ ] 16.5 Build slug page price stats section
     - Render lowest/highest/average prices with currency formatting
     - Render "Available on N marketplaces" stat
     - Handle null prices gracefully
     - _Requirements: 11.3, 11.4_
 
-  - [~] 16.6 Integrate OfferComparison component
+  - [ ] 16.6 Integrate OfferComparison component
     - Render existing OfferComparison component when offers exist
     - Highlight cheapest priced offer
     - Show empty-offers state when no offers
     - _Requirements: 11.5, 11.6_
 
-  - [~] 16.7 Add price distribution chart
+  - [ ] 16.7 Add price distribution chart
     - Render Recharts component when ≥2 priced offers exist
     - Map offer price to marketplace
     - Skip chart when <2 offers
     - _Requirements: 11.7_
 
-  - [~] 16.8 Ensure slug page accessibility
+  - [ ] 16.8 Ensure slug page accessibility
     - Use exactly one h1 (product title)
     - Use h2 for section headings
     - No heading level skipping
@@ -530,7 +530,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - No horizontal scrolling
     - _Requirements: 11.10, 11.11_
 
-  - [~] 16.9 Handle anonymous viewers
+  - [ ] 16.9 Handle anonymous viewers
     - Disable HeartButton with "Sign in" message
     - Disable alert quick-create with sign-in affordance
     - _Requirements: 11.9_
@@ -543,7 +543,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test anonymous vs authenticated views
 
 - [ ] 17. Frontend: Price alert quick-create
-  - [~] 17.1 Create PriceAlertQuickCreate component
+  - [ ] 17.1 Create PriceAlertQuickCreate component
     - Create `components/products/price-alert-quick-create.tsx`
     - Pre-fill threshold to lowestPrice * 0.9 rounded to 2 decimals
     - Accept input range 0.01-999,999,999.99 with max 2 decimals
@@ -551,7 +551,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Associate input with visible label or aria-label
     - _Requirements: 14.1, 14.8_
 
-  - [~] 17.2 Implement validation and submission
+  - [ ] 17.2 Implement validation and submission
     - Validate on submit: non-empty, numeric, 0.01-999,999,999.99, max 2 decimals
     - Show inline validation error and retain value on invalid
     - POST to /api/v1/alerts with { productId, condition: "BELOW", threshold, channels: ["EMAIL"] }
@@ -560,13 +560,13 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Show error toast on failure, preserve value for retry
     - _Requirements: 14.4, 14.5, 14.7_
 
-  - [~] 17.3 Handle disabled state
+  - [ ] 17.3 Handle disabled state
     - Disable when lowestPrice is null
     - Show tooltip "No priced offer yet" on hover/focus
     - Disable for anonymous viewers with sign-in affordance
     - _Requirements: 14.2_
 
-  - [~] 17.4 Add to product pages
+  - [ ] 17.4 Add to product pages
     - Render component on slug page
     - Render component on saved page cards (when lowestPrice exists)
     - _Requirements: 11.8, 14.3_
@@ -578,7 +578,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test disabled states
 
 - [ ] 18. Frontend: Alerts management page enhancements
-  - [~] 18.1 Update /alerts page with new controls
+  - [ ] 18.1 Update /alerts page with new controls
     - Update `app/(dashboard)/alerts/page.tsx`
     - Add edit controls for threshold/condition
     - Add toggle for ACTIVE↔PAUSED status
@@ -591,7 +591,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test validation errors
     - Test IDOR prevention
 
-- [~] 19. Checkpoint - Frontend core functionality complete
+- [ ] 19. Checkpoint - Frontend core functionality complete
   - Ensure all pages render correctly
   - Ensure all mutations work with optimistic updates
   - Ensure accessibility features work (keyboard nav, screen readers)
@@ -599,7 +599,7 @@ This implementation plan transforms the PricePulse platform into an engagement-d
   - Ask the user if questions arise
 
 - [ ] 20. Integration: Search capture integration
-  - [~] 20.1 Integrate search capture in product search page
+  - [ ] 20.1 Integrate search capture in product search page
     - Update search submission handler in `/products` page
     - Call useSearchCapture().capture(query) on search submit
     - Ensure coalescing (5-second window)
@@ -612,29 +612,29 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - Test that identical submissions in 5s window increase server searchCount by exactly one
 
 - [ ] 21. Integration: HeartButton integration
-  - [~] 21.1 Add HeartButton to product catalog cards
+  - [ ] 21.1 Add HeartButton to product catalog cards
     - Update product card component
     - Add HeartButton with size="sm"
     - Ensure 44x44px touch target
     - _Requirements: 3.1_
 
-  - [~] 21.2 Add HeartButton to slug page
+  - [ ] 21.2 Add HeartButton to slug page
     - Add HeartButton to hero section
     - Use size="md"
     - _Requirements: 11.8_
 
-  - [~] 21.3 Add HeartButton to saved page cards
+  - [ ] 21.3 Add HeartButton to saved page cards
     - Render in saved state by default
     - _Requirements: 4.7_
 
 - [ ] 22. Testing: Property-based test setup
-  - [~] 22.1 Set up fast-check in backend tests
+  - [ ] 22.1 Set up fast-check in backend tests
     - Install fast-check: `npm install --save-dev fast-check @types/fast-check`
     - Configure Jest for property tests
     - Create test helpers for generating test data (users, products)
     - _Requirements: PBT scope_
 
-  - [~] 22.2 Create property test utilities
+  - [ ] 22.2 Create property test utilities
     - Create arbitraries for User, Product, SavedProduct, SearchHistory
     - Create test database helpers (setup/teardown)
     - Create fast-check matchers for common assertions
@@ -692,56 +692,56 @@ This implementation plan transforms the PricePulse platform into an engagement-d
     - _Requirements: Design goals_
 
 - [ ] 25. Documentation and deployment
-  - [~] 25.1 Update API documentation
+  - [ ] 25.1 Update API documentation
     - Add Swagger annotations for all new endpoints
     - Document request/response schemas
     - Document authentication requirements
     - Document error codes
     - _Requirements: Design document_
 
-  - [~] 25.2 Update frontend documentation
+  - [ ] 25.2 Update frontend documentation
     - Document new pages and routes
     - Document new components and hooks
     - Document prop interfaces
     - Add usage examples
     - _Requirements: Design document_
 
-  - [~] 25.3 Create environment variable documentation
+  - [ ] 25.3 Create environment variable documentation
     - Document SEARCH_HISTORY_MAX_PER_USER (default 100, range 10-1000)
     - Document ALERT_EMAIL_COOLDOWN_HOURS (default 24, range 1-168)
     - Document APP_URL and NEXT_PUBLIC_APP_URL requirements
     - Document SMTP configuration for production
     - _Requirements: Requirements 7.3, 16.7_
 
-  - [~] 25.4 Update deployment configuration
+  - [ ] 25.4 Update deployment configuration
     - Add new env vars to Railway configuration
     - Add new env vars to Vercel configuration
     - Verify Redis connection for BullMQ
     - Verify PostgreSQL connection for Prisma
     - _Requirements: Design constraints_
 
-  - [~] 25.5 Run database migrations in production
+  - [ ] 25.5 Run database migrations in production
     - Apply SavedProduct migration to production database
     - Apply SearchHistory migration to production database
     - Verify migrations completed successfully
     - Verify indexes created
     - _Requirements: Requirements 1.7, 6.9_
 
-  - [~] 25.6 Deploy backend to Railway
+  - [ ] 25.6 Deploy backend to Railway
     - Push backend changes to Railway
     - Verify all new endpoints accessible
     - Verify worker processes running
     - Monitor error logs
     - _Requirements: Design constraints_
 
-  - [~] 25.7 Deploy frontend to Vercel
+  - [ ] 25.7 Deploy frontend to Vercel
     - Push frontend changes to Vercel
     - Verify all new pages accessible
     - Verify API calls work
     - Test responsive design on real devices
     - _Requirements: Design constraints_
 
-- [~] 26. Final checkpoint and user acceptance
+- [ ] 26. Final checkpoint and user acceptance
   - Verify all acceptance criteria met for Requirements 1-18
   - Verify all property tests pass
   - Verify no regression in existing functionality

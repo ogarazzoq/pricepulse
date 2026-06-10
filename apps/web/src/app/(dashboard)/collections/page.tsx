@@ -1,15 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Plus, FolderOpen } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collectionsApi, type Collection } from '@/features/collections';
 import { CollectionCard } from '@/components/collections/collection-card';
+import { SortableCollectionCard } from '@/components/collections/sortable-collection-card';
 import { CreateCollectionDialog } from '@/components/collections/create-collection-dialog';
 import { useRouter } from 'next/navigation';
 
@@ -17,12 +35,54 @@ export default function CollectionsPage() {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | undefined>();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [localCollections, setLocalCollections] = useState<Collection[]>([]);
 
   const { data: collections, isLoading, error, refetch } = useQuery({
     queryKey: ['collections'],
     queryFn: collectionsApi.list,
     staleTime: 30_000,
   });
+
+  // Update local state when collections change
+  useEffect(() => {
+    if (collections) {
+      setLocalCollections(collections);
+    }
+  }, [collections]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (over && active.id !== over.id) {
+      setLocalCollections((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+      // TODO: Add API call to persist order
+    }
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+  };
 
   const handleEdit = (collection: Collection) => {
     setEditingCollection(collection);
@@ -39,6 +99,10 @@ export default function CollectionsPage() {
       setEditingCollection(undefined);
     }
   };
+
+  const activeCollection = activeId
+    ? localCollections.find((c) => c.id === activeId)
+    : null;
 
   return (
     <motion.div
@@ -98,27 +162,51 @@ export default function CollectionsPage() {
             ))}
           </div>
         ) : collections && collections.length > 0 ? (
-          <motion.div
-            className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            initial="hidden"
-            animate="visible"
-            variants={{
-              visible: {
-                transition: {
-                  staggerChildren: 0.05,
-                },
-              },
-            }}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
           >
-            {collections.map((collection) => (
-              <CollectionCard
-                key={collection.id}
-                collection={collection}
-                onEdit={handleEdit}
-                onClick={handleClick}
-              />
-            ))}
-          </motion.div>
+            <SortableContext
+              items={localCollections.map((c) => c.id)}
+              strategy={rectSortingStrategy}
+            >
+              <motion.div
+                className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  visible: {
+                    transition: {
+                      staggerChildren: 0.05,
+                    },
+                  },
+                }}
+              >
+                {localCollections.map((collection) => (
+                  <SortableCollectionCard
+                    key={collection.id}
+                    collection={collection}
+                    onEdit={handleEdit}
+                    onClick={handleClick}
+                  />
+                ))}
+              </motion.div>
+            </SortableContext>
+            <DragOverlay>
+              {activeCollection ? (
+                <div className="opacity-90">
+                  <CollectionCard
+                    collection={activeCollection}
+                    onEdit={handleEdit}
+                    onClick={handleClick}
+                  />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         ) : (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

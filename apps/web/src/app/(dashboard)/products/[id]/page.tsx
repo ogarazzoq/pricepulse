@@ -112,20 +112,20 @@ export default function ProductDetailsPage() {
               )}
             </div>
             {lowestOffer && (
-              <div className="rounded-xl border border-border/60 bg-card/50 p-4">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Best price</p>
-                <div className="mt-1 flex items-baseline gap-3 flex-wrap">
-                  <span className="font-mono text-2xl font-semibold tabular-nums sm:text-3xl">
+              <div className="rounded-xl border border-border/60 bg-card/50 p-3 sm:p-4">
+                <p className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground">Best price</p>
+                <div className="mt-1 flex items-baseline gap-2 sm:gap-3 flex-wrap">
+                  <span className="price-large">
                     {formatCurrency(lowestOffer.currentPrice, lowestOffer.currency)}
                   </span>
                   {lowestOffer.discountPercent != null && Number(lowestOffer.discountPercent) > 0 && (
-                    <Badge variant="success">
+                    <Badge variant="success" className="badge-responsive">
                       <ArrowDownRight className="h-3 w-3" aria-hidden="true" /> −
                       {Number(lowestOffer.discountPercent).toFixed(0)}%
                     </Badge>
                   )}
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-[10px] sm:text-xs text-muted-foreground">
                   on{' '}
                   <span className="font-medium text-foreground">
                     {lowestOffer.marketplace.name}
@@ -146,9 +146,13 @@ export default function ProductDetailsPage() {
                 </p>
               </div>
               <Tabs value={range} onValueChange={(v) => setRange(v as PriceRange)}>
-                <TabsList className="overflow-x-auto">
+                <TabsList className="grid grid-cols-5 w-full sm:w-auto sm:flex">
                   {RANGES.map((r) => (
-                    <TabsTrigger key={r.id} value={r.id}>
+                    <TabsTrigger 
+                      key={r.id} 
+                      value={r.id}
+                      className="text-xs sm:text-sm px-2 sm:px-3"
+                    >
                       {r.label}
                     </TabsTrigger>
                   ))}

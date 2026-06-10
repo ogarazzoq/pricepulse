@@ -41,48 +41,60 @@ export default function DashboardPage() {
           [...Array(6)].map((_, i) => <Skeleton key={i} className="h-28" />)
         ) : (
           <>
-            <StatCard
-              label="Tracked products"
-              value={formatNumber(data?.totals.trackedProducts ?? 0)}
-              icon={<Package className="h-4 w-4" />}
-              accent="brand"
-            />
-            <StatCard
-              label="Active alerts"
-              value={formatNumber(data?.totals.activeAlerts ?? 0)}
-              icon={<BellRing className="h-4 w-4" />}
-              accent="warning"
-            />
-            <StatCard
-              label="Drops triggered (30d)"
-              value={formatNumber(data?.totals.triggeredAlerts30d ?? 0)}
-              icon={<TrendingDown className="h-4 w-4" />}
-              accent="success"
-            />
-            <StatCard
-              label="Avg savings"
-              value={`${data?.totals.averageSavingsPercent.toFixed(1) ?? 0}%`}
-              icon={<Sparkles className="h-4 w-4" />}
-              accent="brand"
-            />
-            <StatCard
-              label="Saved products"
-              value={formatNumber(data?.totals.savedProducts ?? 0)}
-              icon={<Heart className="h-4 w-4 fill-red-500 text-red-500" />}
-              accent="brand"
-            />
-            <StatCard
-              label="Search queries"
-              value={formatNumber(data?.totals.searchQueries ?? 0)}
-              icon={<Search className="h-4 w-4" />}
-              accent="brand"
-            />
+            <div className="card-pattern">
+              <StatCard
+                label="Tracked products"
+                value={formatNumber(data?.totals.trackedProducts ?? 0)}
+                icon={<Package className="h-4 w-4" />}
+                accent="brand"
+              />
+            </div>
+            <div className="card-pattern">
+              <StatCard
+                label="Active alerts"
+                value={formatNumber(data?.totals.activeAlerts ?? 0)}
+                icon={<BellRing className="h-4 w-4" />}
+                accent="warning"
+              />
+            </div>
+            <div className="card-pattern">
+              <StatCard
+                label="Drops triggered (30d)"
+                value={formatNumber(data?.totals.triggeredAlerts30d ?? 0)}
+                icon={<TrendingDown className="h-4 w-4" />}
+                accent="success"
+              />
+            </div>
+            <div className="card-pattern">
+              <StatCard
+                label="Avg savings"
+                value={`${data?.totals.averageSavingsPercent.toFixed(1) ?? 0}%`}
+                icon={<Sparkles className="h-4 w-4" />}
+                accent="brand"
+              />
+            </div>
+            <div className="card-pattern">
+              <StatCard
+                label="Saved products"
+                value={formatNumber(data?.totals.savedProducts ?? 0)}
+                icon={<Heart className="h-4 w-4 fill-red-500 text-red-500" />}
+                accent="brand"
+              />
+            </div>
+            <div className="card-pattern">
+              <StatCard
+                label="Search queries"
+                value={formatNumber(data?.totals.searchQueries ?? 0)}
+                icon={<Search className="h-4 w-4" />}
+                accent="brand"
+              />
+            </div>
           </>
         )}
       </div>
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 glow-card">
           <CardHeader>
             <CardTitle>Recent price drops</CardTitle>
             <CardDescription>Last 7 days across all marketplaces</CardDescription>
@@ -92,7 +104,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="diagonal-lines">
           <CardHeader>
             <CardTitle>Cheapest marketplaces</CardTitle>
             <CardDescription>Average price across catalog</CardDescription>
@@ -128,7 +140,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="wavy-pattern">
           <CardHeader>
             <CardTitle>Biggest discounts</CardTitle>
             <CardDescription>Best deals across the catalog</CardDescription>
@@ -172,7 +184,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="mesh-gradient">
           <CardHeader>
             <CardTitle>Recent drops</CardTitle>
             <CardDescription>Live feed from the price-sync worker</CardDescription>
@@ -217,7 +229,7 @@ export default function DashboardPage() {
                 </Link>
               ))
             ) : (
-              <EmptyState title="No drops yet" description="The first sync hasn’t run." />
+              <EmptyState title="No drops yet" description="The first sync hasn't run." />
             )}
           </CardContent>
         </Card>
