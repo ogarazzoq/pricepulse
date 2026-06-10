@@ -2,13 +2,17 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { SavedProductDto } from './dto/saved-product.dto';
 import { SavedProductListDto } from './dto/saved-product-list.dto';
+import { BulkOperationResultDto } from './dto/bulk-save.dto';
 
 @Injectable()
 export class SavedProductsService {
+  private readonly logger = new Logger(SavedProductsService.name);
+  
   constructor(private readonly prisma: PrismaService) {}
 
   /**
@@ -237,5 +241,93 @@ export class SavedProductsService {
       },
       createdAt: savedProduct.createdAt.toISOString(),
     };
+  }
+
+  /**
+   * Bulk save multiple products.
+   * Processes each product individually and returns success/failure report.
+   * @param userId - Owner ID from JWT
+   * @param productIds - Array of product IDs to save (max 50)
+   * @returns BulkOperationResultDto with success/failure counts
+   */
+  async bulkSave(
+    userId: string,
+    productIds: string[],
+  ): Promise<BulkOperationResultDto> {
+    const results: BulkOperationResultDto = {
+      success: 0,
+      failed: 0,
+      total: productIds.length,
+      successIds: [],
+      errors: [],
+    };
+
+    // Process each product
+    for (const productId of productIds) {
+      try {
+        await this.create(userId, productId);
+        results.success++;
+        results.successIds.push(productId);
+      } catch (error: any) {
+        results.failed++;
+        results.errors.push({
+          productId,
+          error: error.message || 'Unknown error',
+        });
+        this.logger.warn(
+          `Failed to save product ${productId} for user ${userId}: ${error.message}`,
+        );
+      }
+    }
+
+    this.logger.log(
+      `Bulk save completed: ${results.success}/${results.total} succeeded for user ${userId}`,
+    );
+
+    return results;
+  }
+
+  /**
+   * Bulk unsave multiple products.
+   * Processes each product individually and always succeeds (idempotent).
+   * @param userId - Owner ID from JWT
+   * @param productIds - Array of product IDs to unsave (max 50)
+   * @returns BulkOperationResultDto with success count
+   */
+  async bulkUnsave(
+    userId: string,
+    productIds: string[],
+  ): Promise<BulkOperationResultDto> {
+    const results: BulkOperationResultDto = {
+      success: 0,
+      failed: 0,
+      total: productIds.length,
+      successIds: [],
+      errors: [],
+    };
+
+    // Process each product (idempotent delete)
+    for (const productId of productIds) {
+      try {
+        await this.remove(userId, productId);
+        results.success++;
+        results.successIds.push(productId);
+      } catch (error: any) {
+        results.failed++;
+        results.errors.push({
+          productId,
+          error: error.message || 'Unknown error',
+        });
+        this.logger.warn(
+          `Failed to unsave product ${productId} for user ${userId}: ${error.message}`,
+        );
+      }
+    }
+
+    this.logger.log(
+      `Bulk unsave completed: ${results.success}/${results.total} succeeded for user ${userId}`,
+    );
+
+    return results;
   }
 }

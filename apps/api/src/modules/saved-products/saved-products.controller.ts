@@ -15,6 +15,8 @@ import { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SavedProductsService } from './saved-products.service';
 import { CreateSavedProductDto } from './dto/create-saved-product.dto';
+import { BulkSaveDto, BulkOperationResultDto } from './dto/bulk-save.dto';
+import { BulkUnsaveDto } from './dto/bulk-unsave.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtPayload } from '../../common/types/jwt-payload.type';
@@ -136,5 +138,47 @@ export class SavedProductsController {
   ) {
     const saved = await this.savedProductsService.check(user.sub, productId);
     return { saved };
+  }
+
+  /**
+   * POST /api/v1/saved/bulk/save - Bulk save multiple products
+   * Processes up to 50 products at once
+   * Returns success/failure report
+   */
+  @Post('bulk/save')
+  @ApiOperation({ summary: 'Bulk save products' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns bulk operation result with success/failure counts',
+    type: BulkOperationResultDto,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - invalid productIds array' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing JWT' })
+  async bulkSave(
+    @CurrentUser() user: JwtPayload,
+    @Body() bulkSaveDto: BulkSaveDto,
+  ): Promise<BulkOperationResultDto> {
+    return this.savedProductsService.bulkSave(user.sub, bulkSaveDto.productIds);
+  }
+
+  /**
+   * POST /api/v1/saved/bulk/unsave - Bulk unsave multiple products
+   * Processes up to 50 products at once (idempotent)
+   * Returns success/failure report
+   */
+  @Post('bulk/unsave')
+  @ApiOperation({ summary: 'Bulk unsave products' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns bulk operation result with success/failure counts',
+    type: BulkOperationResultDto,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - invalid productIds array' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing JWT' })
+  async bulkUnsave(
+    @CurrentUser() user: JwtPayload,
+    @Body() bulkUnsaveDto: BulkUnsaveDto,
+  ): Promise<BulkOperationResultDto> {
+    return this.savedProductsService.bulkUnsave(user.sub, bulkUnsaveDto.productIds);
   }
 }
