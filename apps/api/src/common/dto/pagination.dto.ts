@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class PaginationDto {
@@ -14,4 +14,8 @@ export class PaginationDto {
   @Min(1)
   @Max(100)
   pageSize?: number = 20;
+
+  @IsOptional()
+  @IsUUID()
+  collection?: string;
 }

@@ -53,6 +53,7 @@ export default function SavedProductsPage() {
   const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
   const [showAddToCollection, setShowAddToCollection] = useState(false);
   const [showCollections, setShowCollections] = useState(false);
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const pageSize = 24;
   const queryClient = useQueryClient();
 
@@ -292,7 +293,7 @@ export default function SavedProductsPage() {
                     <Filter className="h-5 w-5 text-primary" />
                   </div>
                   
-                  <DropdownMenu>
+                  <DropdownMenu open={filterDropdownOpen} onOpenChange={setFilterDropdownOpen}>
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
@@ -339,7 +340,7 @@ export default function SavedProductsPage() {
                     >
                       <div className="p-2 space-y-1">
                         {/* All Products Option */}
-                        <Link href="/saved" className="block">
+                        <Link href="/saved" className="block" onClick={() => setFilterDropdownOpen(false)}>
                           <motion.div
                             whileHover={{ x: 4 }}
                             className={cn(
@@ -376,6 +377,7 @@ export default function SavedProductsPage() {
                               key={collection.id} 
                               href={`/saved?collection=${collection.id}`}
                               className="block"
+                              onClick={() => setFilterDropdownOpen(false)}
                             >
                               <motion.div
                                 whileHover={{ x: 4 }}
@@ -419,7 +421,10 @@ export default function SavedProductsPage() {
                         {/* New Collection Button */}
                         <motion.button
                           whileHover={{ x: 4 }}
-                          onClick={() => setCollectionDialogOpen(true)}
+                          onClick={() => {
+                            setFilterDropdownOpen(false);
+                            setCollectionDialogOpen(true);
+                          }}
                           className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 border-2 border-dashed border-border/60 hover:border-primary/40 transition-colors"
                         >
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">

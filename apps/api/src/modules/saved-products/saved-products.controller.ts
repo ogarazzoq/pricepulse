@@ -46,10 +46,9 @@ export class SavedProductsController {
   async list(
     @CurrentUser() user: JwtPayload,
     @Query() paginationDto: PaginationDto,
-    @Query('collection') collectionId?: string,
   ) {
-    const { page = 1, pageSize = 20 } = paginationDto;
-    return this.savedProductsService.list(user.sub, page, pageSize, collectionId);
+    const { page = 1, pageSize = 20, collection } = paginationDto;
+    return this.savedProductsService.list(user.sub, page, pageSize, collection);
   }
 
   /**
