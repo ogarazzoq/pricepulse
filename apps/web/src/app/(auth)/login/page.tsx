@@ -10,8 +10,8 @@ import { useLogin } from '@/features/auth/use-auth';
 import { Logo } from '@/components/ui/logo';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('demo@pricepulse.io');
-  const [password, setPassword] = useState('Demo@12345');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const login = useLogin();
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
+            placeholder="demo@pricepulse.io"
             className="focus-ring-primary"
           />
         </div>
@@ -86,7 +86,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Demo@12345"
               className="pr-10 focus-ring-primary"
             />
             <button

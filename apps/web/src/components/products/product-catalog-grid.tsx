@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, Store } from 'lucide-react';
+import { Star, Store, FolderPlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { HeartButton } from '@/components/products/heart-button';
+import { AddToCollectionDialog } from '@/components/products/add-to-collection-dialog';
 import { formatCurrency } from '@/lib/utils';
 import type { Product } from '@/features/products/products.api';
 
@@ -26,6 +29,7 @@ export function ProductCatalogGrid({ items }: Props) {
 }
 
 function ProductCard({ product: p }: { product: Product }) {
+  const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
   const offerCount = p.offers.length;
   const lowest = p.lowestPrice ?? null;
   const highest = p.highestPrice ?? null;
@@ -40,82 +44,108 @@ function ProductCard({ product: p }: { product: Product }) {
       : null;
 
   return (
-    <Link
-      href={`/products/${p.id}`}
-      className="ring-focus group block h-full rounded-xl"
-      aria-label={`View details for ${p.title}`}
-    >
-      <Card className="flex h-full flex-col overflow-hidden transition hover:border-primary/40 hover:shadow-[0_8px_28px_-12px_hsl(var(--primary)/0.4)]">
-        <div className="relative aspect-[4/3] bg-muted/30">
-          {p.imageUrl && (
-            <Image
-              src={p.imageUrl}
-              alt={p.title}
-              fill
-              loading="lazy"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-4 transition group-hover:scale-105"
-            />
-          )}
-          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2.5">
-            <Badge variant="outline" className="bg-background/80 backdrop-blur">
-              <Store className="h-3 w-3" aria-hidden="true" />
-              <span className="font-medium">{offerCount}</span>
-              <span className="sr-only">marketplace offers</span>
-            </Badge>
-            <div className="flex items-center gap-1">
-              {discount !== null && <Badge variant="success">−{discount.toFixed(0)}%</Badge>}
-              <HeartButton productId={p.id} className="bg-background/80 backdrop-blur" />
+    <>
+      <Link
+        href={`/products/${p.id}`}
+        className="ring-focus group block h-full rounded-xl"
+        aria-label={`View details for ${p.title}`}
+      >
+        <Card className="flex h-full flex-col overflow-hidden transition hover:border-primary/40 hover:shadow-[0_8px_28px_-12px_hsl(var(--primary)/0.4)]">
+          <div className="relative aspect-[4/3] bg-muted/30">
+            {p.imageUrl && (
+              <Image
+                src={p.imageUrl}
+                alt={p.title}
+                fill
+                loading="lazy"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-contain p-4 transition group-hover:scale-105"
+              />
+            )}
+            <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2.5">
+              <Badge variant="outline" className="bg-background/80 backdrop-blur">
+                <Store className="h-3 w-3" aria-hidden="true" />
+                <span className="font-medium">{offerCount}</span>
+                <span className="sr-only">marketplace offers</span>
+              </Badge>
+              <div className="flex items-center gap-1">
+                {discount !== null && <Badge variant="success">−{discount.toFixed(0)}%</Badge>}
+                <HeartButton productId={p.id} className="bg-background/80 backdrop-blur" />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-1 flex-col gap-2 p-3 sm:p-4">
-          <h3 className="line-clamp-2 text-sm font-medium leading-tight">{p.title}</h3>
+          <div className="flex flex-1 flex-col gap-2 p-3 sm:p-4">
+            <h3 className="line-clamp-2 text-sm font-medium leading-tight">{p.title}</h3>
 
-          <div className="mt-auto flex items-end justify-between gap-2">
-            <div className="min-w-0">
-              {lowest != null ? (
-                <>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    From
-                  </p>
-                  <p className="font-mono text-base font-semibold tabular-nums">
-                    {formatCurrency(lowest, lowestOffer?.currency || 'USD')}
-                  </p>
-                  {highest != null && highest > lowest && (
-                    <p className="text-[10px] text-muted-foreground tabular-nums">
-                      up to{' '}
-                      <span className="text-foreground/80">
-                        {formatCurrency(highest, lowestOffer?.currency || 'USD')}
-                      </span>
-                    </p>
+            <div className="mt-auto space-y-2">
+              <div className="flex items-end justify-between gap-2">
+                <div className="min-w-0">
+                  {lowest != null ? (
+                    <>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        From
+                      </p>
+                      <p className="font-mono text-base font-semibold tabular-nums">
+                        {formatCurrency(lowest, lowestOffer?.currency || 'USD')}
+                      </p>
+                      {highest != null && highest > lowest && (
+                        <p className="text-[10px] text-muted-foreground tabular-nums">
+                          up to{' '}
+                          <span className="text-foreground/80">
+                            {formatCurrency(highest, lowestOffer?.currency || 'USD')}
+                          </span>
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Catalog only</p>
                   )}
-                </>
-              ) : (
-                <p className="text-xs text-muted-foreground">Catalog only</p>
-              )}
-            </div>
+                </div>
 
-            <div className="flex flex-col items-end gap-1">
-              {bestRating > 0 && (
-                <span
-                  className="inline-flex items-center gap-1 text-xs tabular-nums"
-                  aria-label={`Rating ${bestRating.toFixed(1)} out of 5`}
-                >
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden="true" />
-                  {bestRating.toFixed(1)}
-                </span>
-              )}
-              {p.category && (
-                <Badge variant="secondary" className="text-[10px] capitalize">
-                  {p.category}
-                </Badge>
-              )}
+                <div className="flex flex-col items-end gap-1">
+                  {bestRating > 0 && (
+                    <span
+                      className="inline-flex items-center gap-1 text-xs tabular-nums"
+                      aria-label={`Rating ${bestRating.toFixed(1)} out of 5`}
+                    >
+                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden="true" />
+                      {bestRating.toFixed(1)}
+                    </span>
+                  )}
+                  {p.category && (
+                    <Badge variant="secondary" className="text-[10px] capitalize">
+                      {p.category}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Add to Collection Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCollectionDialogOpen(true);
+                }}
+              >
+                <FolderPlus className="h-3 w-3 mr-1" />
+                Add to Collection
+              </Button>
             </div>
           </div>
-        </div>
-      </Card>
-    </Link>
+        </Card>
+      </Link>
+
+      <AddToCollectionDialog
+        open={collectionDialogOpen}
+        onOpenChange={setCollectionDialogOpen}
+        productId={p.id}
+        productTitle={p.title}
+      />
+    </>
   );
 }
