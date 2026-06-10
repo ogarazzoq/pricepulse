@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +15,10 @@ import {
   Square,
   Loader2,
   MoreHorizontal,
-  X
+  X,
+  Plus,
+  FolderOpen,
+  Filter
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,6 +29,9 @@ import { HeartButton } from '@/components/products/heart-button';
 import { formatCurrency, cn } from '@/lib/utils';
 import { savedProductsApi } from '@/features/saved-products/saved-products.api';
 import type { SavedProduct } from '@/features/saved-products/saved-products.types';
+import { collectionsApi, type Collection } from '@/features/collections';
+import { getCollectionIcon } from '@/components/collections/collection-icons';
+import { CreateCollectionDialog } from '@/components/collections/create-collection-dialog';
 import { toast } from 'sonner';
 import { saveAs } from 'file-saver';
 import {
@@ -37,11 +44,23 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 
 export default function SavedProductsPage() {
+  const searchParams = useSearchParams();
+  const selectedCollectionId = searchParams.get('collection');
+  
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
+  const [showCollections, setShowCollections] = useState(false);
   const pageSize = 24;
   const queryClient = useQueryClient();
+
+  // Fetch collections
+  const { data: collections } = useQuery({
+    queryKey: ['collections'],
+    queryFn: collectionsApi.list,
+    staleTime: 30_000,
+  });
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['saved', 'list', page, pageSize],
@@ -227,6 +246,75 @@ export default function SavedProductsPage() {
         </motion.div>
       </div>
 
+      {/* Collections Filter */}
+      {collections && collections.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="bg-muted/30">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <Button
+                  variant={!selectedCollectionId ? 'default' : 'ghost'}
+                  size="sm"
+                  asChild
+                  className="shrink-0"
+                >
+                  <Link href="/saved">
+                    <FolderOpen className="mr-2 h-4 w-4" />
+                    All Products
+                  </Link>
+                </Button>
+
+                {collections.map((collection) => {
+                  const IconComponent = getCollectionIcon(collection.icon);
+                  const isActive = selectedCollectionId === collection.id;
+                  
+                  return (
+                    <Button
+                      key={collection.id}
+                      variant={isActive ? 'default' : 'ghost'}
+                      size="sm"
+                      asChild
+                      className="shrink-0"
+                      style={{
+                        backgroundColor: isActive ? collection.color : undefined,
+                        borderColor: isActive ? collection.color : undefined,
+                      }}
+                    >
+                      <Link href={`/saved?collection=${collection.id}`}>
+                        <IconComponent className="mr-2 h-4 w-4" />
+                        {collection.name}
+                        {collection.productCount > 0 && (
+                          <Badge
+                            variant="secondary"
+                            className="ml-2 h-5 px-1.5 text-xs"
+                          >
+                            {collection.productCount}
+                          </Badge>
+                        )}
+                      </Link>
+                    </Button>
+                  );
+                })}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCollectionDialogOpen(true)}
+                  className="shrink-0 gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">New</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       <AnimatePresence mode="wait">
         {isSelectionMode && items.length > 0 && (
           <motion.div
@@ -342,6 +430,12 @@ export default function SavedProductsPage() {
           </motion.div>
         )}
       </div>
+
+      {/* Create Collection Dialog */}
+      <CreateCollectionDialog
+        open={collectionDialogOpen}
+        onOpenChange={setCollectionDialogOpen}
+      />
     </motion.div>
   );
 }
