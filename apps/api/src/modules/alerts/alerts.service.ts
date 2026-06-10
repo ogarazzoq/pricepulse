@@ -35,7 +35,10 @@ export class AlertsService {
 
   async listByUser(userId: string) {
     const alerts = await this.prisma.alert.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        status: { not: AlertStatus.ARCHIVED } // Don't show archived alerts
+      },
       orderBy: { createdAt: 'desc' },
       include: { product: true },
     });
@@ -46,9 +49,17 @@ export class AlertsService {
     const alert = await this.prisma.alert.findFirst({ where: { id, userId } });
     if (!alert) throw new NotFoundException('Alert not found');
 
+    // If alert is ARCHIVED, return 404 (Requirement 13.9)
+    if (alert.status === AlertStatus.ARCHIVED) {
+      throw new NotFoundException('Alert not found');
+    }
+
+    // Build update data - preserve triggeredCount and lastTriggeredAt (Requirement 13.6)
+    const updateData: any = { ...dto };
+
     const updated = await this.prisma.alert.update({
       where: { id },
-      data: dto,
+      data: updateData,
       include: { product: true },
     });
     return this.serialize(updated);
@@ -57,6 +68,12 @@ export class AlertsService {
   async archive(userId: string, id: string) {
     const alert = await this.prisma.alert.findFirst({ where: { id, userId } });
     if (!alert) throw new NotFoundException('Alert not found');
+    
+    // If already archived, return 404 (Requirement 13.9)
+    if (alert.status === AlertStatus.ARCHIVED) {
+      throw new NotFoundException('Alert not found');
+    }
+    
     await this.prisma.alert.update({
       where: { id },
       data: { status: AlertStatus.ARCHIVED },
@@ -136,6 +153,7 @@ export class AlertsService {
       currency: a.currency,
       channels: a.channels,
       status: a.status,
+      triggeredCount: a.triggeredCount ?? 0,
       lastEvaluatedAt: a.lastEvaluatedAt?.toISOString() ?? null,
       lastTriggeredAt: a.lastTriggeredAt?.toISOString() ?? null,
       createdAt: a.createdAt.toISOString(),

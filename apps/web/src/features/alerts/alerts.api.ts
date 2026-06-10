@@ -28,10 +28,21 @@ export interface CreateAlertInput {
   channels: NotificationChannel[];
 }
 
+/**
+ * Input DTO for updating an alert
+ * All fields are optional for partial updates
+ */
+export interface UpdateAlertInput {
+  threshold?: number;
+  condition?: AlertCondition;
+  channels?: NotificationChannel[];
+  status?: 'ACTIVE' | 'PAUSED'; // Only these transitions are allowed
+}
+
 export const alertsApi = {
   list: () => api.get<Alert[]>('/alerts').then((r) => r.data),
   create: (input: CreateAlertInput) => api.post<Alert>('/alerts', input).then((r) => r.data),
-  update: (id: string, body: Partial<{ status: AlertStatus; threshold: number }>) =>
+  update: (id: string, body: UpdateAlertInput) =>
     api.patch<Alert>(`/alerts/${id}`, body).then((r) => r.data),
   archive: (id: string) => api.delete(`/alerts/${id}`).then((r) => r.data),
 };

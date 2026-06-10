@@ -1,0 +1,37 @@
+================================================================
+PRICE DROP ALERT
+================================================================
+
+{{productTitle}}
+
+Great news! The price has dropped on a product you're tracking.
+
+----------------------------------------------------------------
+PRICE DETAILS
+----------------------------------------------------------------
+
+Old Price:     {{currency}}{{oldPrice}}
+New Price:     {{currency}}{{newPrice}}
+You Save:      {{currency}}{{savings}} ({{savingsPercent}}% off)
+Marketplace:   {{marketplaceName}}
+
+----------------------------------------------------------------
+
+This price drop meets your alert threshold of {{currency}}{{threshold}}.
+
+VIEW PRODUCT
+{{productUrl}}
+
+Click or copy the link above to view the full product details and make your purchase.
+
+----------------------------------------------------------------
+
+Why am I receiving this?
+You set up a price alert for this product. You can manage your alerts at any time in your PricePulse account.
+
+Happy savings!
+The PricePulse Team
+
+================================================================
+© 2025 PricePulse. All rights reserved.
+================================================================
