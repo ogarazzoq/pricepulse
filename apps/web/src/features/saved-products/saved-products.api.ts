@@ -27,12 +27,13 @@ export const savedProductsApi = {
    * 
    * @param page - Page number (default: 1)
    * @param pageSize - Items per page (default: 20, max: 100)
+   * @param collectionId - Optional collection ID to filter by
    * @returns Paginated list of saved products with joined product data
    */
-  list: (page: number = 1, pageSize: number = 20) =>
+  list: (page: number = 1, pageSize: number = 20, collectionId?: string) =>
     api
       .get<SavedProductsListResponse>('/saved', {
-        params: { page, pageSize },
+        params: { page, pageSize, collection: collectionId },
       })
       .then((r) => r.data),
 

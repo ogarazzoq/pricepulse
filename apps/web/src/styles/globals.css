@@ -216,6 +216,132 @@
     background-image: radial-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px);
     background-size: 20px 20px;
   }
+  
+  /* New creative backgrounds for light mode */
+  .mesh-gradient {
+    background: 
+      radial-gradient(at 0% 0%, hsl(var(--gradient-from) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(var(--gradient-via) / 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsl(var(--gradient-to) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsl(var(--gradient-from) / 0.1) 0px, transparent 50%);
+  }
+  
+  .diagonal-lines {
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 20px,
+      hsl(var(--border) / 0.3) 20px,
+      hsl(var(--border) / 0.3) 21px
+    );
+  }
+  
+  .wavy-pattern {
+    background-image: 
+      repeating-radial-gradient(
+        circle at 0 0,
+        transparent 0,
+        hsl(var(--background)) 10px
+      ),
+      repeating-linear-gradient(
+        hsl(var(--border) / 0.2),
+        hsl(var(--border) / 0.3)
+      );
+  }
+  
+  .glow-card {
+    position: relative;
+    background: hsl(var(--card));
+  }
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, 
+      hsl(var(--gradient-from) / 0.2), 
+      hsl(var(--gradient-via) / 0.15), 
+      hsl(var(--gradient-to) / 0.2)
+    );
+    filter: blur(12px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+  .glow-card:hover::before {
+    opacity: 1;
+  }
+  
+  .bg-gradient-brand {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-from) / 0.15),
+      hsl(var(--gradient-via) / 0.1),
+      hsl(var(--gradient-to) / 0.15)
+    );
+  }
+  
+  .card-pattern {
+    background-image: 
+      radial-gradient(at 0% 0%, hsl(var(--gradient-from) / 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsl(var(--gradient-to) / 0.08) 0px, transparent 50%);
+    background-size: 100% 100%;
+  }
+  
+  .floating-shapes {
+    position: relative;
+    overflow: hidden;
+  }
+  .floating-shapes::before,
+  .floating-shapes::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.08;
+    animation: float 20s ease-in-out infinite;
+  }
+  .floating-shapes::before {
+    width: 300px;
+    height: 300px;
+    background: hsl(var(--gradient-from));
+    top: -150px;
+    right: -150px;
+  }
+  .floating-shapes::after {
+    width: 200px;
+    height: 200px;
+    background: hsl(var(--gradient-to));
+    bottom: -100px;
+    left: -100px;
+    animation-delay: -10s;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(30px, -50px) rotate(120deg); }
+    66% { transform: translate(-20px, 20px) rotate(240deg); }
+  }
+  
+  .spotlight {
+    position: relative;
+    background: hsl(var(--card));
+  }
+  .spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      hsl(var(--primary) / 0.1) 0%,
+      transparent 50%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .spotlight:hover::before {
+    opacity: 1;
+  }
 }
 
 @layer utilities {

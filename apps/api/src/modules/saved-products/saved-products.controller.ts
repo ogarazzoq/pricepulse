@@ -33,6 +33,7 @@ export class SavedProductsController {
    * GET /api/v1/saved - List user's saved products with pagination
    * Returns paginated list ordered by createdAt descending
    * Default: page=1, pageSize=20; pageSize clamped to 100
+   * Query params: ?collection=uuid to filter by collection
    * Requirements: 2.1, 2.2, 2.3, 2.4, 2.12
    */
   @Get()
@@ -45,9 +46,10 @@ export class SavedProductsController {
   async list(
     @CurrentUser() user: JwtPayload,
     @Query() paginationDto: PaginationDto,
+    @Query('collection') collectionId?: string,
   ) {
     const { page = 1, pageSize = 20 } = paginationDto;
-    return this.savedProductsService.list(user.sub, page, pageSize);
+    return this.savedProductsService.list(user.sub, page, pageSize, collectionId);
   }
 
   /**

@@ -115,22 +115,30 @@ export class SavedProductsService {
    * @param userId - Owner ID from JWT
    * @param page - Page number (1-indexed)
    * @param pageSize - Items per page (clamped to 1-100)
+   * @param collectionId - Optional collection ID to filter by
    * @returns Paginated list of SavedProductDto
    */
   async list(
     userId: string,
     page: number,
     pageSize: number,
+    collectionId?: string,
   ): Promise<SavedProductListDto> {
     // Sanitize pagination params
     const sanitizedPage = Math.max(1, Math.floor(page) || 1);
     const sanitizedPageSize = Math.max(1, Math.min(100, Math.floor(pageSize) || 20));
     const skip = (sanitizedPage - 1) * sanitizedPageSize;
 
+    // Build where clause
+    const where: any = { userId };
+    if (collectionId) {
+      where.collectionId = collectionId;
+    }
+
     // Query saved products with product join
     const [items, total] = await Promise.all([
       this.prisma.savedProduct.findMany({
-        where: { userId },
+        where,
         skip,
         take: sanitizedPageSize,
         orderBy: { createdAt: 'desc' },
@@ -153,7 +161,7 @@ export class SavedProductsService {
         },
       }),
       this.prisma.savedProduct.count({
-        where: { userId },
+        where,
       }),
     ]);
 

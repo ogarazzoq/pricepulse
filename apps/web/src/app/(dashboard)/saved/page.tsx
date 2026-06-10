@@ -64,8 +64,8 @@ export default function SavedProductsPage() {
   });
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['saved', 'list', page, pageSize],
-    queryFn: () => savedProductsApi.list(page, pageSize),
+    queryKey: ['saved', 'list', page, pageSize, selectedCollectionId],
+    queryFn: () => savedProductsApi.list(page, pageSize, selectedCollectionId || undefined),
     staleTime: 30_000,
   });
 
