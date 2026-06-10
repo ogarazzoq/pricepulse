@@ -30,6 +30,7 @@ import { HealthModule } from './modules/health/health.module';
 import { BootstrapModule } from './modules/bootstrap/bootstrap.module';
 import { SavedProductsModule } from './modules/saved-products/saved-products.module';
 import { SearchHistoryModule } from './modules/search-history/search-history.module';
+import { CollectionsModule } from './modules/collections/collections.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { SearchHistoryModule } from './modules/search-history/search-history.mod
     BootstrapModule,
     SavedProductsModule,
     SearchHistoryModule,
+    CollectionsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
