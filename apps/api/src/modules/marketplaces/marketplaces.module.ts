@@ -8,6 +8,7 @@ import { DummyJsonProvider } from './providers/dummyjson.provider';
 import { EscuelaJsProvider } from './providers/escuelajs.provider';
 import { OpenFoodFactsProvider } from './providers/openfoodfacts.provider';
 import { BestBuyProvider } from './providers/bestbuy.provider';
+import { OlchaProvider } from './providers/olcha.provider';
 import { UpcItemDbEnricher } from './providers/upcitemdb.enricher';
 
 @Global()
@@ -23,6 +24,7 @@ import { UpcItemDbEnricher } from './providers/upcitemdb.enricher';
     EscuelaJsProvider,
     OpenFoodFactsProvider,
     BestBuyProvider,
+    OlchaProvider,
     // Enrichment providers
     UpcItemDbEnricher,
   ],

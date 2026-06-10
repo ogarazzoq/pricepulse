@@ -28,6 +28,13 @@ async function main() {
       websiteUrl: 'https://dummyjson.com',
       baseCurrency: 'USD',
     },
+    {
+      slug: 'olcha',
+      name: 'Olcha.uz',
+      logoUrl: 'https://olcha.uz/image/original/logo.png',
+      websiteUrl: 'https://olcha.uz',
+      baseCurrency: 'UZS',
+    },
   ];
 
   for (const m of marketplaces) {

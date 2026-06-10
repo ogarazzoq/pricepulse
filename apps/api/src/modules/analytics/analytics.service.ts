@@ -18,6 +18,8 @@ export class AnalyticsService {
       recentSnapshots,
       cheapestMarketplaces,
       trending,
+      savedProductsCount,
+      searchHistoryCount,
     ] = await Promise.all([
       this.prisma.product.count(),
       this.prisma.alert.count({
@@ -62,6 +64,14 @@ export class AnalyticsService {
         take: 6,
         include: { offers: { orderBy: { currentPrice: 'asc' }, take: 1 } },
       }),
+      // NEW: Saved products count (user-specific if userId provided)
+      userId
+        ? this.prisma.savedProduct.count({ where: { userId } })
+        : this.prisma.savedProduct.count(),
+      // NEW: Search history count (user-specific if userId provided)
+      userId
+        ? this.prisma.searchHistory.count({ where: { userId } })
+        : this.prisma.searchHistory.count(),
     ]);
 
     const recentDrops = this.computeRecentDrops(recentSnapshots);
@@ -80,6 +90,8 @@ export class AnalyticsService {
         activeAlerts,
         triggeredAlerts30d,
         averageSavingsPercent: Number(avgSavings.toFixed(2)),
+        savedProducts: savedProductsCount,
+        searchQueries: searchHistoryCount,
       },
       topDiscounts: topDiscounts.map((o) => ({
         productId: o.productId,

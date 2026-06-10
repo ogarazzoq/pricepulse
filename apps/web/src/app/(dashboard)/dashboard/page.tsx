@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { BellRing, Package, Sparkles, TrendingDown } from 'lucide-react';
+import { BellRing, Package, Sparkles, TrendingDown, Heart, Search } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { analyticsApi } from '@/features/analytics/analytics.api';
@@ -36,9 +36,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats — 2 cols on mobile, 4 on desktop */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         {isLoading ? (
-          [...Array(4)].map((_, i) => <Skeleton key={i} className="h-28" />)
+          [...Array(6)].map((_, i) => <Skeleton key={i} className="h-28" />)
         ) : (
           <>
             <StatCard
@@ -63,6 +63,18 @@ export default function DashboardPage() {
               label="Avg savings"
               value={`${data?.totals.averageSavingsPercent.toFixed(1) ?? 0}%`}
               icon={<Sparkles className="h-4 w-4" />}
+              accent="brand"
+            />
+            <StatCard
+              label="Saved products"
+              value={formatNumber(data?.totals.savedProducts ?? 0)}
+              icon={<Heart className="h-4 w-4 fill-red-500 text-red-500" />}
+              accent="brand"
+            />
+            <StatCard
+              label="Search queries"
+              value={formatNumber(data?.totals.searchQueries ?? 0)}
+              icon={<Search className="h-4 w-4" />}
               accent="brand"
             />
           </>

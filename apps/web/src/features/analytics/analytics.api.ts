@@ -6,6 +6,8 @@ export interface DashboardOverview {
     activeAlerts: number;
     triggeredAlerts30d: number;
     averageSavingsPercent: number;
+    savedProducts: number;
+    searchQueries: number;
   };
   topDiscounts: Array<{
     productId: string;
