@@ -1,37 +1,38 @@
-================================================================
-PRICE DROP ALERT
-================================================================
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔔 PRICE DROP ALERT!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+💰 Great news! A product you're watching has dropped in price.
+
+────────────────────────────────────────────────────────────────
+
+📦 PRODUCT:
 {{productTitle}}
 
-Great news! The price has dropped on a product you're tracking.
+💸 PRICE COMPARISON:
+   Old Price: {{oldPrice}}
+   New Price: {{newPrice}}
+   
+   ✨ YOU SAVE: {{savingsAmount}} ({{savingsPercent}}% off!)
 
-----------------------------------------------------------------
-PRICE DETAILS
-----------------------------------------------------------------
+🏪 MARKETPLACE:
+   {{marketplaceName}}
 
-Old Price:     {{currency}}{{oldPrice}}
-New Price:     {{currency}}{{newPrice}}
-You Save:      {{currency}}{{savings}} ({{savingsPercent}}% off)
-Marketplace:   {{marketplaceName}}
+────────────────────────────────────────────────────────────────
 
-----------------------------------------------------------------
-
-This price drop meets your alert threshold of {{currency}}{{threshold}}.
-
-VIEW PRODUCT
+👉 VIEW PRODUCT:
 {{productUrl}}
 
-Click or copy the link above to view the full product details and make your purchase.
+This price was detected {{condition}} your threshold of {{threshold}}.
 
-----------------------------------------------------------------
+────────────────────────────────────────────────────────────────
 
-Why am I receiving this?
-You set up a price alert for this product. You can manage your alerts at any time in your PricePulse account.
+PRICEPULSE — Your smart price tracking companion
 
-Happy savings!
-The PricePulse Team
+Manage your alerts:
+{{appUrl}}/alerts
 
-================================================================
-© 2025 PricePulse. All rights reserved.
-================================================================
+You're receiving this because you set up a price alert.
+To stop receiving these emails, pause or delete the alert in your dashboard.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

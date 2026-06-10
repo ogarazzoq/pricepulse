@@ -1,144 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Price Drop Alert</title>
-  <!--[if mso]>
-  <style type="text/css">
-    body, table, td, a { font-family: Arial, sans-serif !important; }
-  </style>
-  <![endif]-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Drop Alert</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        /* Reset styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background-color: #f3f4f6;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            padding: 32px 24px;
+            text-align: center;
+        }
+        
+        .header-title {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        /* Content */
+        .content {
+            padding: 32px 24px;
+        }
+        
+        .alert-badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .product-section {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+            background-color: #f9fafb;
+        }
+        
+        .product-image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .product-image {
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            margin: 0 auto;
+        }
+        
+        .product-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #111827;
+            margin: 0 0 16px 0;
+            line-height: 1.4;
+        }
+        
+        .price-comparison {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+        
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .price-label {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .price-value {
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .old-price {
+            color: #ef4444;
+            text-decoration: line-through;
+        }
+        
+        .new-price {
+            color: #10b981;
+        }
+        
+        .savings {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 16px;
+        }
+        
+        .savings-amount {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            display: block;
+        }
+        
+        .savings-percent {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+        
+        .marketplace-info {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #f3f4f6;
+            border-radius: 6px;
+        }
+        
+        .marketplace-name {
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        /* CTA Button */
+        .cta-container {
+            text-align: center;
+            margin: 32px 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: #f9fafb;
+            padding: 24px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        
+        .footer a {
+            color: #6366f1;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .header-title {
+                font-size: 20px;
+            }
+            
+            .product-title {
+                font-size: 18px;
+            }
+            
+            .savings-amount {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 24px 16px;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
-  <!-- Email Container -->
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
-    <tr>
-      <td style="padding: 20px 0;">
-        <!-- Main Content -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" align="center">
-          
-          <!-- Header -->
-          <tr>
-            <td style="padding: 32px 40px 24px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">
-                🎉 Price Drop Alert!
-              </h1>
-            </td>
-          </tr>
-
-          <!-- Product Image (if available) -->
-          {{#if productImage}}
-          <tr>
-            <td style="padding: 0; text-align: center; background-color: #ffffff;">
-              <img src="{{productImage}}" alt="{{productTitle}}" style="max-width: 100%; height: auto; display: block; margin: 0 auto; max-height: 300px; object-fit: contain; padding: 20px;">
-            </td>
-          </tr>
-          {{/if}}
-
-          <!-- Product Title -->
-          <tr>
-            <td style="padding: 24px 40px 16px;">
-              <h2 style="margin: 0; color: #1a202c; font-size: 20px; font-weight: 600; line-height: 1.4;">
-                {{productTitle}}
-              </h2>
-            </td>
-          </tr>
-
-          <!-- Price Comparison -->
-          <tr>
-            <td style="padding: 0 40px 24px;">
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                <tr>
-                  <!-- Old Price -->
-                  <td style="width: 50%; padding: 16px; background-color: #fef5f5; border-radius: 8px; text-align: center;" valign="top">
-                    <div style="color: #a0aec0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
-                      Was
+<body>
+    <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; background-color: #f3f4f6;">
+        <tr>
+            <td style="padding: 20px 0;">
+                <div class="container">
+                    <!-- Header -->
+                    <div class="header">
+                        <h1 class="header-title">🔔 Price Drop Alert!</h1>
                     </div>
-                    <div style="color: #e53e3e; font-size: 24px; font-weight: 700; text-decoration: line-through;">
-                      {{oldPrice}} {{currency}}
+                    
+                    <!-- Content -->
+                    <div class="content">
+                        <div style="text-align: center;">
+                            <span class="alert-badge">💰 Great news!</span>
+                        </div>
+                        
+                        <p style="font-size: 16px; color: #374151; margin: 16px 0 0 0;">
+                            A product you're watching has dropped in price:
+                        </p>
+                        
+                        <!-- Product Section -->
+                        <div class="product-section">
+                            {{#if productImage}}
+                            <div class="product-image-container">
+                                <img src="{{productImage}}" alt="{{productTitle}}" class="product-image">
+                            </div>
+                            {{/if}}
+                            
+                            <h2 class="product-title">{{productTitle}}</h2>
+                            
+                            <!-- Price Comparison -->
+                            <div class="price-comparison">
+                                <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%;">
+                                    <tr>
+                                        <td class="price-label">Old Price:</td>
+                                        <td class="price-value old-price" style="text-align: right;">{{oldPrice}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="price-label">New Price:</td>
+                                        <td class="price-value new-price" style="text-align: right;">{{newPrice}}</td>
+                                    </tr>
+                                </table>
+                                
+                                <!-- Savings Box -->
+                                <div class="savings">
+                                    <span class="savings-amount">You save {{savingsAmount}}</span>
+                                    <div class="savings-percent">That's {{savingsPercent}}% off!</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Marketplace Info -->
+                            <div class="marketplace-info">
+                                Available on <span class="marketplace-name">{{marketplaceName}}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- CTA -->
+                        <div class="cta-container">
+                            <a href="{{productUrl}}" class="cta-button" target="_blank">
+                                View Product →
+                            </a>
+                        </div>
+                        
+                        <p style="font-size: 14px; color: #6b7280; text-align: center; margin-top: 24px;">
+                            This price was detected {{condition}} your threshold of <strong>{{threshold}}</strong>
+                        </p>
                     </div>
-                  </td>
-                  
-                  <!-- Arrow -->
-                  <td style="width: 60px; text-align: center; font-size: 24px; color: #48bb78;" valign="middle">
-                    →
-                  </td>
-                  
-                  <!-- New Price -->
-                  <td style="width: 50%; padding: 16px; background-color: #f0fff4; border-radius: 8px; text-align: center;" valign="top">
-                    <div style="color: #a0aec0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
-                      Now
+                    
+                    <!-- Footer -->
+                    <div class="footer">
+                        <p style="margin: 0 0 8px 0;">
+                            <strong>PricePulse</strong> — Your smart price tracking companion
+                        </p>
+                        <p style="margin: 0 0 8px 0;">
+                            Manage your alerts at <a href="{{appUrl}}/alerts">{{appUrl}}/alerts</a>
+                        </p>
+                        <p style="margin: 8px 0 0 0; color: #9ca3af;">
+                            You're receiving this because you set up a price alert.<br>
+                            To stop receiving these emails, pause or delete the alert in your dashboard.
+                        </p>
                     </div>
-                    <div style="color: #38a169; font-size: 24px; font-weight: 700;">
-                      {{newPrice}} {{currency}}
-                    </div>
-                  </td>
-                </tr>
-              </table>
+                </div>
             </td>
-          </tr>
-
-          <!-- Savings Badge -->
-          <tr>
-            <td style="padding: 0 40px 32px; text-align: center;">
-              <div style="display: inline-block; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: #ffffff; padding: 12px 24px; border-radius: 24px; font-size: 16px; font-weight: 600; box-shadow: 0 2px 8px rgba(56, 161, 105, 0.3);">
-                💰 Save {{savings}} {{currency}} ({{savingsPercent}}% off)
-              </div>
-            </td>
-          </tr>
-
-          <!-- Marketplace Info -->
-          <tr>
-            <td style="padding: 0 40px 24px; text-align: center;">
-              <p style="margin: 0; color: #718096; font-size: 14px;">
-                Available at <strong style="color: #2d3748;">{{marketplaceName}}</strong>
-              </p>
-            </td>
-          </tr>
-
-          <!-- CTA Button -->
-          <tr>
-            <td style="padding: 0 40px 40px; text-align: center;">
-              <a href="{{productUrl}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 48px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); transition: transform 0.2s;">
-                View Deal Now
-              </a>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 24px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; border-top: 1px solid #e2e8f0;">
-              <p style="margin: 0 0 12px; color: #718096; font-size: 12px; line-height: 1.6; text-align: center;">
-                You're receiving this email because you set up a price alert for this product on PricePulse.
-              </p>
-              <p style="margin: 0; color: #a0aec0; font-size: 11px; text-align: center;">
-                <a href="{{productUrl}}" style="color: #667eea; text-decoration: none;">View Product</a> • 
-                <a href="#" style="color: #667eea; text-decoration: none;">Manage Alerts</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
-        <!-- End Main Content -->
-
-        <!-- Footer Text -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 20px auto 0;" align="center">
-          <tr>
-            <td style="text-align: center; color: #a0aec0; font-size: 12px; line-height: 1.6;">
-              <p style="margin: 0 0 8px;">
-                © {{year}} PricePulse. All rights reserved.
-              </p>
-              <p style="margin: 0;">
-                Compare prices across marketplaces and never miss a deal.
-              </p>
-            </td>
-          </tr>
-        </table>
-
-      </td>
-    </tr>
-  </table>
+        </tr>
+    </table>
 </body>
 </html>
