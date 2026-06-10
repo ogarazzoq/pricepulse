@@ -28,6 +28,8 @@ import { AdminModule } from './modules/admin/admin.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { HealthModule } from './modules/health/health.module';
 import { BootstrapModule } from './modules/bootstrap/bootstrap.module';
+import { SavedProductsModule } from './modules/saved-products/saved-products.module';
+import { SearchHistoryModule } from './modules/search-history/search-history.module';
 
 @Module({
   imports: [
@@ -59,6 +61,8 @@ import { BootstrapModule } from './modules/bootstrap/bootstrap.module';
     JobsModule,
     HealthModule,
     BootstrapModule,
+    SavedProductsModule,
+    SearchHistoryModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

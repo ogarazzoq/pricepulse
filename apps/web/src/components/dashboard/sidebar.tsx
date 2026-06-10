@@ -4,12 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/ui/logo';
+import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/features/auth/auth.store';
+import { useSavedCount } from '@/features/saved-products';
 import { NAV_SECTIONS, isPathActive } from './nav-config';
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const role = useAuthStore((s) => s.user?.role);
+  const { data: savedCountData } = useSavedCount();
+  const savedCount = savedCountData?.count ?? 0;
 
   return (
     <aside
@@ -36,6 +40,7 @@ export function DashboardSidebar() {
               <ul className="space-y-0.5">
                 {visibleItems.map((item) => {
                   const active = isPathActive(pathname, item.href);
+                  const showBadge = item.href === '/saved' && savedCount > 0;
                   return (
                     <li key={item.href}>
                       <Link
@@ -52,6 +57,14 @@ export function DashboardSidebar() {
                       >
                         <item.icon className="h-4 w-4 shrink-0" />
                         {item.label}
+                        {showBadge && (
+                          <Badge
+                            variant="secondary"
+                            className="ml-auto h-5 min-w-[20px] px-1.5 text-[10px] font-semibold"
+                          >
+                            {savedCount > 99 ? '99+' : savedCount}
+                          </Badge>
+                        )}
                       </Link>
                     </li>
                   );

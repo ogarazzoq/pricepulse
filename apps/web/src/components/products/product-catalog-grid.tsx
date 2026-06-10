@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Star, Store } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { HeartButton } from '@/components/products/heart-button';
 import { formatCurrency } from '@/lib/utils';
 import type { Product } from '@/features/products/products.api';
 
@@ -62,7 +63,10 @@ function ProductCard({ product: p }: { product: Product }) {
               <span className="font-medium">{offerCount}</span>
               <span className="sr-only">marketplace offers</span>
             </Badge>
-            {discount !== null && <Badge variant="success">−{discount.toFixed(0)}%</Badge>}
+            <div className="flex items-center gap-1">
+              {discount !== null && <Badge variant="success">−{discount.toFixed(0)}%</Badge>}
+              <HeartButton productId={p.id} className="bg-background/80 backdrop-blur" />
+            </div>
           </div>
         </div>
 

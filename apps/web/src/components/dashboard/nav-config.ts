@@ -1,6 +1,7 @@
 import {
   Bell,
   BellRing,
+  Heart,
   LayoutDashboard,
   LineChart,
   Package,
@@ -29,6 +30,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
       { href: '/products', label: 'Products', icon: Package },
+      { href: '/saved', label: 'Saved', icon: Heart },
       { href: '/analytics', label: 'Analytics', icon: LineChart },
       { href: '/alerts', label: 'Alerts', icon: BellRing },
       { href: '/notifications', label: 'Notifications', icon: Bell },
