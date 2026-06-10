@@ -1,8 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { FakeStoreProvider } from './providers/fakestore.provider';
 import { DummyJsonProvider } from './providers/dummyjson.provider';
-import { EscuelaJsProvider } from './providers/escuelajs.provider';
-import { OpenFoodFactsProvider } from './providers/openfoodfacts.provider';
+// import { EscuelaJsProvider } from './providers/escuelajs.provider';  // Disabled
+// import { OpenFoodFactsProvider } from './providers/openfoodfacts.provider';  // Disabled
 import { BestBuyProvider } from './providers/bestbuy.provider';
 import { OlchaProvider } from './providers/olcha.provider';
 import { AmazonProvider } from './providers/amazon.provider';
@@ -30,16 +30,16 @@ export class MarketplaceRegistry {
     private readonly prisma: PrismaService,
     fakeStore: FakeStoreProvider,
     dummyJson: DummyJsonProvider,
-    escuelaJs: EscuelaJsProvider,
-    openFoodFacts: OpenFoodFactsProvider,
+    // escuelaJs: EscuelaJsProvider,  // Disabled - mixed products
+    // openFoodFacts: OpenFoodFactsProvider,  // Disabled - food only
     bestBuy: BestBuyProvider,
     olcha: OlchaProvider,
     amazon: AmazonProvider,
   ) {
     this.register(fakeStore);
     this.register(dummyJson);
-    this.register(escuelaJs);
-    this.register(openFoodFacts);
+    // this.register(escuelaJs);  // Disabled
+    // this.register(openFoodFacts);  // Disabled
     this.register(bestBuy);
     this.register(olcha);
     this.register(amazon);

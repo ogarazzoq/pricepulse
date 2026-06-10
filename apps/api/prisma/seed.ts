@@ -42,6 +42,13 @@ async function main() {
       websiteUrl: 'https://www.amazon.com',
       baseCurrency: 'USD',
     },
+    {
+      slug: 'bestbuy',
+      name: 'Best Buy',
+      logoUrl: 'https://www.bestbuy.com/~assets/bby/_intl/landing_page_refresh/bb-logo.svg',
+      websiteUrl: 'https://www.bestbuy.com',
+      baseCurrency: 'USD',
+    },
   ];
 
   for (const m of marketplaces) {
