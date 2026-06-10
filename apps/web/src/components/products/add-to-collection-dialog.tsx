@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { CreateCollectionDialog } from '@/components/collections/create-collection-dialog';
+import { getCollectionIcon } from '@/components/collections/collection-icons';
 import { collectionsApi, type Collection } from '@/features/collections';
 import { cn } from '@/lib/utils';
 
@@ -122,6 +123,7 @@ export function AddToCollectionDialog({
                 const isInCollection = selectedCollections.has(collection.id);
                 const isPending =
                   addToCollectionMutation.isPending || removeFromCollectionMutation.isPending;
+                const IconComponent = getCollectionIcon(collection.icon);
 
                 return (
                   <button
@@ -143,7 +145,7 @@ export function AddToCollectionDialog({
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg"
                         style={{ backgroundColor: collection.color + '20' }}
                       >
-                        {collection.icon}
+                        <IconComponent className="h-5 w-5" style={{ color: collection.color }} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{collection.name}</p>
