@@ -56,22 +56,22 @@ export class TelegramBotService implements OnModuleInit {
     this.registerCallbacks();
     this.registerTextHandlers();
 
-    // Start bot in polling mode (for development)
-    const mode = this.config.get<string>('telegram.mode') || 'polling';
+    // Start bot - polling or webhook mode
+    const mode = this.config.get<string>('telegram.mode') || 'webhook';
     
     if (mode === 'polling') {
       this.logger.log('Starting bot in polling mode...');
-      // Non-blocking launch - don't await, let server start first
+      // Non-blocking launch
       this.bot.launch().catch((err) => {
         this.logger.error('Bot launch error:', err.message);
       });
-      this.logger.log('Telegram bot started in polling mode');
+      this.logger.log('Telegram bot started in polling mode ✅');
       
-      // Graceful shutdown
       process.once('SIGINT', () => this.bot?.stop('SIGINT'));
       process.once('SIGTERM', () => this.bot?.stop('SIGTERM'));
     } else {
-      this.logger.log('Telegram bot initialized (webhook mode)');
+      // Webhook mode - updates come via POST /telegram/webhook
+      this.logger.log('Telegram bot initialized in webhook mode ✅');
     }
   }
 
