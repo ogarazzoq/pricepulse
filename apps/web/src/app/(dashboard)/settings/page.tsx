@@ -193,7 +193,7 @@ export default function SettingsPage() {
                       <p className="font-medium">How to link:</p>
                       <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
                         <li>Click &ldquo;Generate Code&rdquo; below</li>
-                        <li>Open Telegram and find @real_time_price_bot</li>
+                        <li>Open Telegram and find @newPricePulse_bot</li>
                         <li>Send <code className="text-xs bg-muted px-1 py-0.5 rounded">/start</code> to the bot</li>
                         <li>Click &ldquo;🔗 Link Account&rdquo; button</li>
                         <li>Enter the verification code</li>
@@ -209,7 +209,7 @@ export default function SettingsPage() {
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={() => window.open('https://t.me/real_time_price_bot', '_blank')}
+                        onClick={() => window.open('https://t.me/newPricePulse_bot', '_blank')}
                         className="gap-2"
                       >
                         <ExternalLink className="h-4 w-4" />
@@ -247,7 +247,7 @@ export default function SettingsPage() {
                     <div className="rounded-lg bg-muted/50 p-3 space-y-2">
                       <p className="text-sm font-medium">Next steps:</p>
                       <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                        <li>Open @real_time_price_bot in Telegram</li>
+                        <li>Open @newPricePulse_bot in Telegram</li>
                         <li>Click &ldquo;🔗 Link Account&rdquo;</li>
                         <li>Enter the code above</li>
                         <li>Wait for confirmation (this page will auto-update)</li>
@@ -299,13 +299,13 @@ export default function SettingsPage() {
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Bot Commands</p>
                   <p className="text-xs text-muted-foreground">
-                    Use these commands in @real_time_price_bot
+                    Use these commands in @newPricePulse_bot
                   </p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open('https://t.me/real_time_price_bot', '_blank')}
+                  onClick={() => window.open('https://t.me/newPricePulse_bot', '_blank')}
                   className="gap-2"
                 >
                   <ExternalLink className="h-3 w-3" />
