@@ -76,6 +76,22 @@ export class AnalyticsService {
 
     const recentDrops = this.computeRecentDrops(recentSnapshots);
 
+    // Fallback: if no snapshot-based drops, use offers with discountPercent
+    const effectiveRecentDrops = recentDrops.length > 0
+      ? recentDrops
+      : topDiscounts
+          .filter((o) => o.originalPrice && Number(o.originalPrice) > Number(o.currentPrice))
+          .slice(0, 8)
+          .map((o) => ({
+            productId: o.productId,
+            title: o.product.title,
+            imageUrl: o.product.imageUrl,
+            marketplaceSlug: o.marketplace.slug,
+            previousPrice: Number(o.originalPrice),
+            currentPrice: Number(o.currentPrice),
+            droppedAt: o.updatedAt.toISOString(),
+          }));
+
     const avgSavings =
       topDiscounts.length > 0
         ? topDiscounts.reduce(
@@ -102,7 +118,7 @@ export class AnalyticsService {
         originalPrice: Number(o.originalPrice ?? o.currentPrice),
         discountPercent: Number(o.discountPercent ?? 0),
       })),
-      recentDrops,
+      recentDrops: effectiveRecentDrops,
       cheapestMarketplaces: cheapestMarketplaces.map((row) => ({
         marketplaceSlug: row.marketplaceslug,
         marketplaceName: row.marketplacename,
@@ -140,9 +156,10 @@ export class AnalyticsService {
     for (const list of groups.values()) {
       const sorted = [...list].sort((a, b) => +a.recordedAt - +b.recordedAt);
       for (let i = 1; i < sorted.length; i++) {
+        // PriceSnapshot uses 'price' field (confirmed in schema)
         const prev = Number(sorted[i - 1].price);
         const curr = Number(sorted[i].price);
-        if (curr < prev) {
+        if (!isNaN(prev) && !isNaN(curr) && curr < prev) {
           const last = sorted[i];
           drops.push({
             productId: last.productOffer.product.id,

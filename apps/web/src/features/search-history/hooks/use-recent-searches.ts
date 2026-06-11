@@ -32,5 +32,6 @@ export function useRecentSearches(limit: number = 10) {
     queryKey: ['searches', 'recent', limit],
     queryFn: () => searchHistoryApi.getRecent(limit),
     staleTime: 30_000, // 30 seconds
+    retry: false,
   });
 }

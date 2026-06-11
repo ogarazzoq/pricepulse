@@ -388,7 +388,7 @@ export class TelegramBotService implements OnModuleInit {
     const page = ctx.session.page || 1;
     const pageSize = 5;
     const msgs = MESSAGES[locale];
-    const webUrl = this.config.get<string>('app.frontendUrl') || 'https://pricepulse.app';
+    const webUrl = this.getWebUrl();
 
     try {
       const result = await this.savedProductsService.list(ctx.session.userId!, page, pageSize);
@@ -493,7 +493,7 @@ export class TelegramBotService implements OnModuleInit {
 
     const locale = ctx.session.locale || 'en';
     const msgs = MESSAGES[locale];
-    const webUrl = this.config.get<string>('app.frontendUrl') || 'https://pricepulse.app';
+    const webUrl = this.getWebUrl();
 
     const keyboard = Markup.inlineKeyboard([
       [Markup.button.callback(msgs.settings.language, 'select_language')],
@@ -509,7 +509,7 @@ export class TelegramBotService implements OnModuleInit {
   private async showHelp(ctx: BotContext) {
     const locale = ctx.session.locale || 'en';
     const msgs = MESSAGES[locale];
-    const webUrl = this.config.get<string>('app.frontendUrl') || 'https://pricepulse.app';
+    const webUrl = this.getWebUrl();
 
     let message = `${msgs.help.title}\n\n`;
     message += `${msgs.help.description}\n`;
@@ -680,6 +680,12 @@ export class TelegramBotService implements OnModuleInit {
 
   // ========== Utility Methods ==========
 
+  private getWebUrl(): string {
+    const raw = this.getWebUrl();
+    // Telegram requires HTTPS URLs for inline buttons
+    return raw.startsWith('http://') ? raw.replace('http://', 'https://') : raw;
+  }
+
   private getMainMenuKeyboard(locale: Locale) {
     return Markup.inlineKeyboard([
       [Markup.button.callback(getMessage(locale, 'menu.alerts'), 'alerts')],
@@ -691,20 +697,32 @@ export class TelegramBotService implements OnModuleInit {
   }
 
   private async ensureLinked(ctx: BotContext): Promise<boolean> {
-    if (ctx.session.userId) return true;
-
     const chatId = String(ctx.chat?.id);
+
+    // Always re-check DB (session may be lost on restart)
     const user = await this.prisma.user.findFirst({
       where: { telegramChatId: chatId },
     });
 
     if (user) {
       ctx.session.userId = user.id;
+      // Sync locale from DB
+      if (user.locale && !ctx.session.locale) {
+        ctx.session.locale = user.locale as Locale;
+      }
       return true;
     }
 
+    // Not linked
+    ctx.session.userId = undefined;
     const locale = ctx.session.locale || 'en';
-    await ctx.reply(getMessage(locale, 'errors.notLinked'));
+    const msgs = MESSAGES[locale];
+    await ctx.reply(msgs.errors.notLinked, {
+      parse_mode: 'HTML',
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback(msgs.buttons.linkAccount, 'link_account')],
+      ]),
+    });
     return false;
   }
 
@@ -723,7 +741,13 @@ export class TelegramBotService implements OnModuleInit {
 
   private async handleError(ctx: BotContext, error: any) {
     const locale = ctx.session.locale || 'en';
-    await ctx.reply(getMessage(locale, 'errors.serverError'));
+    const msgs = MESSAGES[locale];
+    this.logger.error('Bot error:', error?.message || error);
+    try {
+      await ctx.reply(msgs.errors.serverError, { parse_mode: 'HTML' });
+    } catch {
+      // Context may be stale - ignore
+    }
   }
 
   private generateVerificationCode(): string {
@@ -755,7 +779,7 @@ export class TelegramBotService implements OnModuleInit {
 
       const locale = (user.locale as Locale) || 'en';
       const msgs = MESSAGES[locale];
-      const webUrl = this.config.get<string>('app.frontendUrl') || 'https://pricepulse.app';
+      const webUrl = this.getWebUrl();
 
       const oldPrice = Number(offer.originalPrice || offer.currentPrice);
       const newPrice = Number(offer.currentPrice);

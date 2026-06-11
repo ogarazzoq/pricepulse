@@ -34,5 +34,6 @@ export function useTopSearches(limit: number = 10) {
     queryKey: ['searches', 'top', limit],
     queryFn: () => searchHistoryApi.getTop(limit),
     staleTime: 60_000, // 1 minute - top searches change less frequently
+    retry: false,
   });
 }
