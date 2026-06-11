@@ -12,12 +12,19 @@ export class TelegramBotController {
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() update: any) {
+    // Only handle webhook if bot is in webhook mode
+    const bot = this.botService.getBot();
+    if (!bot) {
+      this.logger.warn('Bot not available - may be running in polling mode');
+      return { ok: false, error: 'Bot not configured for webhook mode' };
+    }
+
     try {
       await this.botService.handleUpdate(update);
       return { ok: true };
     } catch (error) {
       this.logger.error('Webhook error:', error);
-      return { ok: false };
+      return { ok: false, error: 'Webhook processing failed' };
     }
   }
 
