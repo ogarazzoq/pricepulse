@@ -10,8 +10,8 @@ import { registerAs } from '@nestjs/config';
  */
 export default registerAs('redis', () => ({
   url: process.env.REDIS_URL || undefined,
-  host: process.env.REDIS_HOST || 'localhost',
-  port: Number(process.env.REDIS_PORT || 6379),
+  host: process.env.REDIS_HOST || undefined,
+  port: process.env.REDIS_PORT ? Number(process.env.REDIS_PORT) : undefined,
   password: process.env.REDIS_PASSWORD || undefined,
   // Set to true in production behind TLS-capable Redis (rediss://).
   tls: process.env.REDIS_TLS === 'true',

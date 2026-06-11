@@ -5,12 +5,45 @@ import IORedis, { Redis, RedisOptions } from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
-  public readonly client: Redis;
+  public client: Redis | null;
+  private isConnected = false;
 
   constructor(private readonly config: ConfigService) {
-    this.client = new IORedis(this.buildConnection());
-    this.client.on('connect', () => this.logger.log('Redis connected'));
-    this.client.on('error', (err) => this.logger.error(`Redis error: ${err.message}`));
+    const host = this.config.get<string>('redis.host');
+    
+    // Skip Redis entirely if not configured
+    if (!host) {
+      this.logger.warn('Redis not configured - running without cache');
+      this.client = null;
+      return;
+    }
+
+    try {
+      const options = this.buildConnection();
+      // Disable retries to prevent spam
+      options.retryStrategy = () => null;
+      options.maxRetriesPerRequest = 0;
+      options.lazyConnect = true; // Don't connect immediately
+      
+      this.client = new IORedis(options);
+      
+      // Try to connect
+      this.client.connect().then(() => {
+        this.isConnected = true;
+        this.logger.log('Redis connected');
+      }).catch(() => {
+        this.isConnected = false;
+        this.logger.warn('Redis unavailable - running without cache');
+        this.client = null;
+      });
+      
+      this.client.on('error', () => {
+        this.isConnected = false;
+      });
+    } catch (error) {
+      this.logger.warn('Redis not configured or unavailable - running without cache');
+      this.client = null;
+    }
   }
 
   /**
@@ -19,6 +52,8 @@ export class RedisService implements OnModuleDestroy {
    */
   buildConnection(): RedisOptions {
     const url = this.config.get<string>('redis.url');
+    const host = this.config.get<string>('redis.host');
+    const port = this.config.get<number>('redis.port');
     const tls = this.config.get<boolean>('redis.tls');
 
     if (url) {
@@ -37,8 +72,8 @@ export class RedisService implements OnModuleDestroy {
     }
 
     return {
-      host: this.config.get<string>('redis.host'),
-      port: this.config.get<number>('redis.port'),
+      host: host || 'localhost',
+      port: port || 6379,
       password: this.config.get<string>('redis.password') || undefined,
       tls: tls ? {} : undefined,
       maxRetriesPerRequest: null,
@@ -52,6 +87,8 @@ export class RedisService implements OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    await this.client.quit();
+    if (this.client) {
+      await this.client.quit();
+    }
   }
 }

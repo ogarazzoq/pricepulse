@@ -46,7 +46,7 @@ import { TelegramBotModule } from './modules/telegram-bot/telegram-bot.module';
 
     // Infrastructure
     PrismaModule,
-    RedisModule,
+    // RedisModule, // Disabled for local dev - enable in production
     MailerModule,
     TelegramModule,
 
@@ -60,7 +60,7 @@ import { TelegramBotModule } from './modules/telegram-bot/telegram-bot.module';
     NotificationsModule,
     AnalyticsModule,
     AdminModule,
-    JobsModule,
+    // JobsModule, // Requires Redis
     HealthModule,
     BootstrapModule,
     SavedProductsModule,
