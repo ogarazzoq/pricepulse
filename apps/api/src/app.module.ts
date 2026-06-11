@@ -31,6 +31,7 @@ import { BootstrapModule } from './modules/bootstrap/bootstrap.module';
 import { SavedProductsModule } from './modules/saved-products/saved-products.module';
 import { SearchHistoryModule } from './modules/search-history/search-history.module';
 import { CollectionsModule } from './modules/collections/collections.module';
+import { TelegramBotModule } from './modules/telegram-bot/telegram-bot.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { CollectionsModule } from './modules/collections/collections.module';
     SavedProductsModule,
     SearchHistoryModule,
     CollectionsModule,
+    TelegramBotModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
