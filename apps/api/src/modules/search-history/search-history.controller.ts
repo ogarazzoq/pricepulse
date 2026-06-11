@@ -26,7 +26,7 @@ import { CaptureSearchDto, SearchHistoryDto } from './dto';
  */
 @ApiTags('search-history')
 @ApiBearerAuth()
-@Controller('api/v1/searches')
+@Controller('searches')
 @UseGuards(JwtAuthGuard)
 export class SearchHistoryController {
   private readonly logger = new Logger(SearchHistoryController.name);
