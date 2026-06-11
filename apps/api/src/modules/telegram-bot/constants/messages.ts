@@ -1,77 +1,101 @@
 export const MESSAGES = {
   en: {
     welcome: {
-      title: '👋 Welcome to PricePulse Bot!',
-      description: 'Track prices, get alerts, and never miss a deal.',
-      needLink: 'Please link your account to get started.',
-      alreadyLinked: 'Your account is already linked! Choose an option below:',
+      title: `╔═══════════════════════╗
+║  💹 PricePulse Bot    ║
+╚═══════════════════════╝`,
+      description: '📊 Track prices across all marketplaces\n💰 Get alerts when prices drop\n⭐ Manage your saved products',
+      needLink: '🔗 <b>Link your account</b> to unlock all features!',
+      alreadyLinked: '✅ Account linked! Choose an option:',
     },
     menu: {
-      alerts: '📊 My Alerts',
+      title: `🏠 <b>Main Menu</b>
+
+Select an option below:`,
+      alerts: '🔔 My Alerts',
       saved: '⭐ Saved Products',
-      notifications: '🔔 Notifications',
+      notifications: '📬 Notifications',
       settings: '⚙️ Settings',
       help: 'ℹ️ Help',
-      back: '🏠 Back to Menu',
+      back: '◀️ Back to Menu',
     },
     buttons: {
       linkAccount: '🔗 Link Account',
       unlinkAccount: '🔓 Unlink Account',
-      pause: '⏸️ Pause',
+      pause: '⏸ Pause',
       resume: '▶️ Resume',
       edit: '✏️ Edit',
-      delete: '🗑️ Delete',
+      delete: '🗑 Delete',
       confirm: '✅ Confirm',
       cancel: '❌ Cancel',
-      viewProduct: '🛒 View Product',
+      viewProduct: '🛒 View Deal',
       createAlert: '🔔 Create Alert',
-      remove: '🗑️ Remove',
+      remove: '🗑 Remove',
       refresh: '🔄 Refresh',
-      previous: '◀️ Previous',
-      next: '▶️ Next',
-      bulkActions: '🔧 Bulk Actions',
-      pauseAll: '⏸️ Pause All',
-      resumeAll: '▶️ Resume All',
-      deleteAll: '🗑️ Delete All',
+      previous: '◀️ Prev',
+      next: 'Next ▶️',
     },
     alerts: {
-      title: '📊 Your Price Alerts',
-      empty: 'You don\'t have any active alerts yet.',
-      emptyHint: 'Create alerts on the web to get notified when prices drop!',
+      title: '🔔 <b>My Price Alerts</b>',
+      empty: `📭 <i>No active alerts yet</i>
+
+Create alerts on the website to get notified when prices drop!`,
+      emptyHint: '👉 Go to website → Product page → Set Alert',
+      header: (count: number) => `🔔 <b>My Alerts</b>  •  <i>${count} total</i>\n${'─'.repeat(28)}`,
+      item: (i: number, title: string, condition: string, threshold: string, currency: string, status: string, statusEmoji: string) =>
+        `${statusEmoji} <b>${i}. ${title}</b>\n` +
+        `   📉 <i>${condition}</i> <code>${threshold} ${currency}</code>\n` +
+        `   Status: ${status}`,
       condition: {
-        BELOW: 'Below',
-        ABOVE: 'Above',
-        PERCENT_DROP: 'Drop by',
+        BELOW: 'Price drops below',
+        ABOVE: 'Price goes above',
+        PERCENT_DROP: 'Price drops by',
       },
       status: {
-        ACTIVE: '✅ Active',
-        PAUSED: '⏸️ Paused',
-        TRIGGERED: '🔔 Triggered',
+        ACTIVE: 'Active',
+        PAUSED: 'Paused',
+        TRIGGERED: 'Triggered',
+        ARCHIVED: 'Archived',
       },
-      paused: '⏸️ Alert paused',
-      resumed: '▶️ Alert resumed',
-      deleted: '🗑️ Alert deleted',
-      confirmDelete: '⚠️ Delete this alert?',
-      bulkTitle: '🔧 Bulk Actions',
-      bulkConfirm: (count: number) => `⚠️ This will affect ${count} alert(s). Continue?`,
-      bulkResult: (success: number, failed: number) =>
-        `✅ Success: ${success}\n${failed > 0 ? `❌ Failed: ${failed}` : ''}`,
+      statusEmoji: {
+        ACTIVE: '🟢',
+        PAUSED: '🟡',
+        TRIGGERED: '🔵',
+        ARCHIVED: '⚫',
+      },
+      paused: '⏸ <b>Alert paused</b>\nYou won\'t receive notifications for this alert.',
+      resumed: '▶️ <b>Alert resumed</b>\nYou\'ll receive notifications again.',
+      deleted: '🗑 <b>Alert deleted</b>\nThis alert has been removed.',
+      confirmDelete: '⚠️ <b>Delete this alert?</b>\n\nThis action cannot be undone.',
+      actions: (title: string) => `⚙️ <b>Alert Actions</b>\n\n📦 ${title}`,
+      select: 'Select an alert to manage:',
     },
     saved: {
-      title: '⭐ Your Saved Products',
-      empty: 'You don\'t have any saved products yet.',
-      emptyHint: 'Save products on the web to track them here!',
-      price: '💰 From',
-      marketplace: '🏪 Marketplace',
-      marketplaces: (count: number) => `🏪 ${count} stores`,
-      removed: '🗑️ Product removed from saved',
-      confirmRemove: '⚠️ Remove this product from saved?',
-      collections: '📁 Collections',
-      allProducts: '📁 All Products',
+      title: '⭐ <b>Saved Products</b>',
+      empty: `📭 <i>No saved products yet</i>
+
+Save products on the website to track them here!`,
+      emptyHint: '👉 Go to website → Product page → Save',
+      header: (count: number) => `⭐ <b>Saved Products</b>  •  <i>${count} total</i>\n${'─'.repeat(28)}`,
+      item: (i: number, title: string, price: string, currency: string, stores: number, url?: string) => {
+        let text = `${i}. <b>${title}</b>\n`;
+        if (price) text += `   💰 From <code>${price} ${currency}</code>  🏪 ${stores} store${stores !== 1 ? 's' : ''}\n`;
+        if (url) text += `   🔗 <a href="${url}">View on website</a>`;
+        return text;
+      },
+      price: 'From',
+      marketplaces: (count: number) => `🏪 ${count} store${count !== 1 ? 's' : ''}`,
+      removed: '🗑 <b>Removed from saved</b>',
+      confirmRemove: '⚠️ <b>Remove this product?</b>',
     },
     notifications: {
-      title: '🔔 Your Notifications',
-      empty: 'No notifications yet.',
+      title: '📬 <b>Recent Notifications</b>',
+      empty: `📭 <i>No notifications yet</i>
+
+You'll receive notifications here when price alerts trigger.`,
+      header: (count: number) => `📬 <b>Notifications</b>  •  <i>Last ${count}</i>\n${'─'.repeat(28)}`,
+      item: (subject: string, date: string, statusEmoji: string) =>
+        `${statusEmoji} <b>${subject}</b>\n   🕐 <i>${date}</i>`,
       status: {
         SENT: '✅',
         PENDING: '⏳',
@@ -79,140 +103,176 @@ export const MESSAGES = {
       },
     },
     settings: {
-      title: '⚙️ Settings',
-      language: '🌐 Language',
+      title: `⚙️ <b>Settings</b>
+
+Customize your PricePulse Bot experience:`,
+      language: '🌐 Language / Til',
       accountInfo: '👤 Account Info',
-      notificationPrefs: '🔔 Notification Preferences',
-      selectLanguage: '🌐 Select your language:',
-      languageChanged: '✅ Language updated!',
-      accountTitle: '👤 Your Account',
-      unlinked: '🔓 Account unlinked successfully',
-      confirmUnlink: '⚠️ Unlink your account? You\'ll need to link again to use the bot.',
+      notificationPrefs: '🔔 Notification Prefs',
+      selectLanguage: '🌐 <b>Select Language</b>\n\nChoose your preferred language:',
+      languageChanged: '✅ <b>Language updated to English!</b>',
+      accountTitle: '👤 <b>Your Account</b>',
+      unlinked: '🔓 <b>Account unlinked</b>\n\nYou can link again anytime with /start',
+      confirmUnlink: '⚠️ <b>Unlink account?</b>\n\nYou\'ll stop receiving notifications.',
     },
-    alerts_notification: {
+    alert_notification: {
       title: '🔥 Price Drop Alert!',
-      oldPrice: '💰 Old Price',
-      newPrice: '💰 New Price',
-      save: '🎉 You Save',
-      marketplace: '🏪 Marketplace',
-    },
-    errors: {
-      notLinked: '⚠️ Please link your account first.',
-      notFound: '❌ Not found',
-      serverError: '⚠️ Service temporarily unavailable, please try again.',
-      rateLimitexceeded: '⏳ Please wait a moment before trying again.',
-    },
-    help: {
-      title: 'ℹ️ Help & Commands',
-      description: 'Available commands:',
-      commands: [
-        '/start - Start the bot',
-        '/menu - Main menu',
-        '/alerts - View your alerts',
-        '/saved - View saved products',
-        '/notifications - View notifications',
-        '/settings - Bot settings',
-        '/help - Show this help',
-        '/unlink - Unlink your account',
-      ],
-      features: '✨ Features:',
-      featureList: [
-        '📊 Manage price alerts',
-        '⭐ View saved products',
-        '🔔 Get instant notifications',
-        '🌐 Multi-language support',
-        '⚙️ Customize settings',
-      ],
+      oldPrice: 'Was',
+      newPrice: 'Now',
+      save: 'You save',
+      marketplace: 'at',
     },
     linking: {
-      instructions: '🔗 To link your account:',
+      instructions: `🔗 <b>Link Your Account</b>
+
+To receive notifications and manage your data:`,
       steps: [
-        '1️⃣ Go to PricePulse website',
-        '2️⃣ Open Settings → Telegram',
-        '3️⃣ Click "Generate Code"',
-        '4️⃣ Enter the code here in bot',
+        '1️⃣ Go to <b>PricePulse website</b>',
+        '2️⃣ Open <b>Settings → Telegram Bot</b>',
+        '3️⃣ Click <b>"Generate Code"</b>',
+        '4️⃣ Send the code here',
       ],
-      expires: '⏰ Code expires in 15 minutes',
-      success: '✅ Account linked successfully!',
-      failed: '❌ Link expired or invalid',
-      invalidCode: '❌ Invalid or expired code. Please generate a new code on the website.',
-      alreadyLinked: '⚠️ This Telegram account is already linked to another user.',
-      enterCode: '🔑 Please enter your 6-digit verification code:',
+      expires: '⏰ <i>Code expires in 15 minutes</i>',
+      success: `✅ <b>Account Linked Successfully!</b>
+
+You can now:
+• Receive price drop notifications
+• Manage your alerts from bot
+• View saved products`,
+      failed: '❌ <b>Link failed</b> — code expired or invalid',
+      invalidCode: '❌ <b>Invalid code</b>\n\nPlease generate a new code on the website.',
+      alreadyLinked: '⚠️ This Telegram is already linked to another account.',
+      enterCode: '🔑 <b>Enter your verification code:</b>\n\n<i>Example: ABC123</i>',
+    },
+    errors: {
+      notLinked: `⚠️ <b>Account not linked</b>
+
+Please link your account first to use this feature.`,
+      notFound: '❌ Not found',
+      serverError: '⚠️ <i>Service temporarily unavailable. Please try again.</i>',
+    },
+    help: {
+      title: `ℹ️ <b>PricePulse Bot Help</b>
+${'─'.repeat(28)}`,
+      description: '📋 <b>Available Commands:</b>',
+      commands: [
+        '/start — Start & main menu',
+        '/alerts — View price alerts',
+        '/saved — View saved products',
+        '/notifications — View notifications',
+        '/settings — Bot settings',
+        '/help — Show this help',
+        '/menu — Main menu',
+        '/unlink — Unlink account',
+      ],
+      features: '\n✨ <b>Features:</b>',
+      featureList: [
+        '• 🔔 Instant price drop notifications',
+        '• 📊 Manage alerts (pause/resume/delete)',
+        '• ⭐ Browse saved products',
+        '• 📬 View notification history',
+        '• 🌐 English & O\'zbek support',
+      ],
     },
   },
+
   uz: {
     welcome: {
-      title: '👋 PricePulse Botiga xush kelibsiz!',
-      description: 'Narxlarni kuzating, ogohlantirishlar oling va chegirmalarni qo\'ldan boy bermang.',
-      needLink: 'Boshlash uchun akkauntingizni bog\'lang.',
-      alreadyLinked: 'Akkauntingiz allaqachon bog\'langan! Quyidagi variantni tanlang:',
+      title: `╔═══════════════════════╗
+║  💹 PricePulse Bot    ║
+╚═══════════════════════╝`,
+      description: '📊 Barcha do\'konlarda narxlarni kuzating\n💰 Narx tushganda xabarnoma oling\n⭐ Saqlangan mahsulotlarni boshqaring',
+      needLink: '🔗 <b>Akkauntingizni bog\'lang</b> — barcha imkoniyatlardan foydalaning!',
+      alreadyLinked: '✅ Akkount bog\'langan! Variantni tanlang:',
     },
     menu: {
-      alerts: '📊 Mening Ogohlantirishlarim',
-      saved: '⭐ Saqlangan Mahsulotlar',
-      notifications: '🔔 Bildirishnomalar',
+      title: `🏠 <b>Asosiy Menyu</b>
+
+Quyidagi variantni tanlang:`,
+      alerts: '🔔 Ogohlantirishlarim',
+      saved: '⭐ Saqlangan',
+      notifications: '📬 Bildirishnomalar',
       settings: '⚙️ Sozlamalar',
       help: 'ℹ️ Yordam',
-      back: '🏠 Asosiy Menyu',
+      back: '◀️ Menyuga qaytish',
     },
     buttons: {
       linkAccount: '🔗 Akkauntni Bog\'lash',
-      unlinkAccount: '🔓 Bog\'lanishni Bekor Qilish',
-      pause: '⏸️ To\'xtatish',
-      resume: '▶️ Davom Ettirish',
+      unlinkAccount: '🔓 Bog\'lanishni Uzish',
+      pause: '⏸ To\'xtatish',
+      resume: '▶️ Davom ettirish',
       edit: '✏️ Tahrirlash',
-      delete: '🗑️ O\'chirish',
+      delete: '🗑 O\'chirish',
       confirm: '✅ Tasdiqlash',
-      cancel: '❌ Bekor Qilish',
-      viewProduct: '🛒 Mahsulotni Ko\'rish',
-      createAlert: '🔔 Ogohlantirish Yaratish',
-      remove: '🗑️ Olib Tashlash',
+      cancel: '❌ Bekor qilish',
+      viewProduct: '🛒 Ko\'rish',
+      createAlert: '🔔 Ogohlantirish',
+      remove: '🗑 Olib tashlash',
       refresh: '🔄 Yangilash',
       previous: '◀️ Oldingi',
-      next: '▶️ Keyingi',
-      bulkActions: '🔧 Ommaviy Amallar',
-      pauseAll: '⏸️ Hammasini To\'xtatish',
-      resumeAll: '▶️ Hammasini Davom Ettirish',
-      deleteAll: '🗑️ Hammasini O\'chirish',
+      next: 'Keyingi ▶️',
     },
     alerts: {
-      title: '📊 Narx Ogohlantirishlaringiz',
-      empty: 'Sizda hali faol ogohlantirishlar yo\'q.',
-      emptyHint: 'Narx tushganda xabarnoma olish uchun veb-saytda ogohlantirish yarating!',
+      title: '🔔 <b>Narx Ogohlantirishlarim</b>',
+      empty: `📭 <i>Hali ogohlantirishlar yo'q</i>
+
+Narx tushganda xabar olish uchun veb-saytda ogohlantirish yarating!`,
+      emptyHint: '👉 Veb-sayt → Mahsulot sahifasi → Ogohlantirish',
+      header: (count: number) => `🔔 <b>Ogohlantirishlar</b>  •  <i>${count} ta</i>\n${'─'.repeat(28)}`,
+      item: (i: number, title: string, condition: string, threshold: string, currency: string, status: string, statusEmoji: string) =>
+        `${statusEmoji} <b>${i}. ${title}</b>\n` +
+        `   📉 <i>${condition}</i> <code>${threshold} ${currency}</code>\n` +
+        `   Holat: ${status}`,
       condition: {
-        BELOW: 'Pastda',
-        ABOVE: 'Yuqorida',
-        PERCENT_DROP: 'Tushishi',
+        BELOW: 'Narx pastga tushsa',
+        ABOVE: 'Narx yuqoriga ko\'tarilsa',
+        PERCENT_DROP: 'Narx tushishi',
       },
       status: {
-        ACTIVE: '✅ Faol',
-        PAUSED: '⏸️ To\'xtatilgan',
-        TRIGGERED: '🔔 Ishga Tushgan',
+        ACTIVE: 'Faol',
+        PAUSED: 'To\'xtatilgan',
+        TRIGGERED: 'Ishga tushgan',
+        ARCHIVED: 'Arxivlangan',
       },
-      paused: '⏸️ Ogohlantirish to\'xtatildi',
-      resumed: '▶️ Ogohlantirish davom ettirildi',
-      deleted: '🗑️ Ogohlantirish o\'chirildi',
-      confirmDelete: '⚠️ Ushbu ogohlantirishni o\'chirish?',
-      bulkTitle: '🔧 Ommaviy Amallar',
-      bulkConfirm: (count: number) => `⚠️ Bu ${count} ta ogohlantirishga ta\'sir qiladi. Davom ettirilsinmi?`,
-      bulkResult: (success: number, failed: number) =>
-        `✅ Muvaffaqiyatli: ${success}\n${failed > 0 ? `❌ Xato: ${failed}` : ''}`,
+      statusEmoji: {
+        ACTIVE: '🟢',
+        PAUSED: '🟡',
+        TRIGGERED: '🔵',
+        ARCHIVED: '⚫',
+      },
+      paused: '⏸ <b>Ogohlantirish to\'xtatildi</b>\nBu ogohlantirish uchun xabarnoma kelmaydi.',
+      resumed: '▶️ <b>Ogohlantirish davom ettirildi</b>\nEndi yana xabarnomalar keladi.',
+      deleted: '🗑 <b>Ogohlantirish o\'chirildi</b>',
+      confirmDelete: '⚠️ <b>Bu ogohlantirishni o\'chirish?</b>\n\nBu amalni qaytarib bo\'lmaydi.',
+      actions: (title: string) => `⚙️ <b>Amallar</b>\n\n📦 ${title}`,
+      select: 'Boshqarish uchun ogohlantirishni tanlang:',
     },
     saved: {
-      title: '⭐ Saqlangan Mahsulotlaringiz',
-      empty: 'Sizda hali saqlangan mahsulotlar yo\'q.',
-      emptyHint: 'Mahsulotlarni bu yerda kuzatish uchun veb-saytda saqlang!',
-      price: '💰 Dan',
-      marketplace: '🏪 Do\'kon',
-      marketplaces: (count: number) => `🏪 ${count} ta do\'kon`,
-      removed: '🗑️ Mahsulot saqlanganlardan olib tashlandi',
-      confirmRemove: '⚠️ Ushbu mahsulotni saqlanganlardan olib tashlash?',
-      collections: '📁 Kolleksiyalar',
-      allProducts: '📁 Barcha Mahsulotlar',
+      title: '⭐ <b>Saqlangan Mahsulotlar</b>',
+      empty: `📭 <i>Hali saqlangan mahsulotlar yo'q</i>
+
+Kuzatish uchun veb-saytda mahsulotlarni saqlang!`,
+      emptyHint: '👉 Veb-sayt → Mahsulot sahifasi → Saqlash',
+      header: (count: number) => `⭐ <b>Saqlangan</b>  •  <i>${count} ta</i>\n${'─'.repeat(28)}`,
+      item: (i: number, title: string, price: string, currency: string, stores: number, url?: string) => {
+        let text = `${i}. <b>${title}</b>\n`;
+        if (price) text += `   💰 <code>${price} ${currency}</code>  🏪 ${stores} ta do'kon\n`;
+        if (url) text += `   🔗 <a href="${url}">Veb-saytda ko'rish</a>`;
+        return text;
+      },
+      price: 'Dan boshlab',
+      marketplaces: (count: number) => `🏪 ${count} ta do'kon`,
+      removed: '🗑 <b>Saqlanganlardan olib tashlandi</b>',
+      confirmRemove: '⚠️ <b>Bu mahsulotni olib tashlash?</b>',
     },
     notifications: {
-      title: '🔔 Bildirishnomalaringiz',
-      empty: 'Hali bildirishnomalar yo\'q.',
+      title: '📬 <b>So\'nggi Bildirishnomalar</b>',
+      empty: `📭 <i>Hali bildirishnomalar yo'q</i>
+
+Narx ogohlantirishlari ishlaganda bu yerda ko'rinadi.`,
+      header: (count: number) => `📬 <b>Bildirishnomalar</b>  •  <i>So'nggi ${count} ta</i>\n${'─'.repeat(28)}`,
+      item: (subject: string, date: string, statusEmoji: string) =>
+        `${statusEmoji} <b>${subject}</b>\n   🕐 <i>${date}</i>`,
       status: {
         SENT: '✅',
         PENDING: '⏳',
@@ -220,65 +280,76 @@ export const MESSAGES = {
       },
     },
     settings: {
-      title: '⚙️ Sozlamalar',
-      language: '🌐 Til',
-      accountInfo: '👤 Akkount Ma\'lumotlari',
-      notificationPrefs: '🔔 Bildirishnoma Sozlamalari',
-      selectLanguage: '🌐 Tilingizni tanlang:',
-      languageChanged: '✅ Til yangilandi!',
-      accountTitle: '👤 Sizning Akkauntingiz',
-      unlinked: '🔓 Akkount bog\'lanishi bekor qilindi',
-      confirmUnlink: '⚠️ Akkount bog\'lanishini bekor qilish? Botdan foydalanish uchun qayta bog\'lashingiz kerak bo\'ladi.',
+      title: `⚙️ <b>Sozlamalar</b>
+
+PricePulse Bot tajribangizni sozlang:`,
+      language: '🌐 Til / Language',
+      accountInfo: '👤 Akkount ma\'lumotlari',
+      notificationPrefs: '🔔 Bildirishnoma sozlamalari',
+      selectLanguage: '🌐 <b>Til tanlash</b>\n\nTilni tanlang:',
+      languageChanged: '✅ <b>Til o\'zbek tiliga o\'zgartirildi!</b>',
+      accountTitle: '👤 <b>Sizning akkauntingiz</b>',
+      unlinked: '🔓 <b>Akkount bog\'lanishi uzildi</b>\n\nQayta ulanish uchun /start',
+      confirmUnlink: '⚠️ <b>Bog\'lanishni uzish?</b>\n\nBildirishnomalar to\'xtaydi.',
     },
     alert_notification: {
       title: '🔥 Narx Tushdi!',
-      oldPrice: '💰 Eski Narx',
-      newPrice: '💰 Yangi Narx',
-      save: '🎉 Tejaysiz',
-      marketplace: '🏪 Do\'kon',
-    },
-    errors: {
-      notLinked: '⚠️ Iltimos, avval akkauntingizni bog\'lang.',
-      notFound: '❌ Topilmadi',
-      serverError: '⚠️ Xizmat vaqtincha mavjud emas, qaytadan urinib ko\'ring.',
-      rateLimitExceeded: '⏳ Iltimos, qaytadan urinishdan oldin bir oz kuting.',
-    },
-    help: {
-      title: 'ℹ️ Yordam va Buyruqlar',
-      description: 'Mavjud buyruqlar:',
-      commands: [
-        '/start - Botni boshlash',
-        '/menu - Asosiy menyu',
-        '/alerts - Ogohlantirishlarni ko\'rish',
-        '/saved - Saqlangan mahsulotlar',
-        '/notifications - Bildirishnomalarni ko\'rish',
-        '/settings - Bot sozlamalari',
-        '/help - Ushbu yordamni ko\'rsatish',
-        '/unlink - Akkount bog\'lanishini bekor qilish',
-      ],
-      features: '✨ Xususiyatlar:',
-      featureList: [
-        '📊 Narx ogohlantirishlarini boshqarish',
-        '⭐ Saqlangan mahsulotlarni ko\'rish',
-        '🔔 Tezkor bildirishnomalar olish',
-        '🌐 Ko\'p tilni qo\'llab-quvvatlash',
-        '⚙️ Sozlamalarni moslashtirish',
-      ],
+      oldPrice: 'Oldingi',
+      newPrice: 'Hozir',
+      save: 'Tejaysiz',
+      marketplace: 'da',
     },
     linking: {
-      instructions: '🔗 Akkauntni bog\'lash uchun:',
+      instructions: `🔗 <b>Akkauntni Bog'lash</b>
+
+Bildirishnomalar va ma'lumotlaringizni boshqarish uchun:`,
       steps: [
-        '1️⃣ PricePulse veb-saytiga o\'ting',
-        '2️⃣ Sozlamalar → Telegram ni oching',
-        '3️⃣ "Kod Yaratish" tugmasini bosing',
-        '4️⃣ Kodni botda kiriting',
+        '1️⃣ <b>PricePulse veb-saytiga</b> o\'ting',
+        '2️⃣ <b>Sozlamalar → Telegram Bot</b> ni oching',
+        '3️⃣ <b>"Kod yaratish"</b> tugmasini bosing',
+        '4️⃣ Kodni bu yerga yuboring',
       ],
-      expires: '⏰ Kod 15 daqiqada amal qilish muddati tugaydi',
-      success: '✅ Akkount muvaffaqiyatli bog\'landi!',
-      failed: '❌ Kod muddati tugagan yoki noto\'g\'ri',
-      invalidCode: '❌ Noto\'g\'ri yoki muddati tugagan kod. Iltimos, veb-saytda yangi kod yarating.',
-      alreadyLinked: '⚠️ Ushbu Telegram akkaunti boshqa foydalanuvchiga bog\'langan.',
-      enterCode: '🔑 Iltimos, 6 raqamli tasdiqlash kodingizni kiriting:',
+      expires: '⏰ <i>Kod 15 daqiqa amal qiladi</i>',
+      success: `✅ <b>Akkount Muvaffaqiyatli Bog'landi!</b>
+
+Endi siz:
+• Narx tushishi haqida xabarnoma olasiz
+• Botdan ogohlantirishlarni boshqarasiz
+• Saqlangan mahsulotlarni ko'rasiz`,
+      failed: '❌ <b>Bog\'lanmadi</b> — kod muddati tugagan yoki noto\'g\'ri',
+      invalidCode: '❌ <b>Noto\'g\'ri kod</b>\n\nVeb-saytda yangi kod yarating.',
+      alreadyLinked: '⚠️ Bu Telegram boshqa akkauntga bog\'langan.',
+      enterCode: '🔑 <b>Tasdiqlash kodini kiriting:</b>\n\n<i>Misol: ABC123</i>',
+    },
+    errors: {
+      notLinked: `⚠️ <b>Akkount bog'lanmagan</b>
+
+Bu funksiyadan foydalanish uchun avval akkauntingizni bog'lang.`,
+      notFound: '❌ Topilmadi',
+      serverError: '⚠️ <i>Xizmat vaqtincha mavjud emas. Qayta urinib ko\'ring.</i>',
+    },
+    help: {
+      title: `ℹ️ <b>PricePulse Bot Yordam</b>
+${'─'.repeat(28)}`,
+      description: '📋 <b>Mavjud buyruqlar:</b>',
+      commands: [
+        '/start — Boshlash va asosiy menyu',
+        '/alerts — Narx ogohlantirishlar',
+        '/saved — Saqlangan mahsulotlar',
+        '/notifications — Bildirishnomalar',
+        '/settings — Bot sozlamalari',
+        '/help — Yordam',
+        '/menu — Asosiy menyu',
+        '/unlink — Akkauntni uzish',
+      ],
+      features: '\n✨ <b>Imkoniyatlar:</b>',
+      featureList: [
+        '• 🔔 Tezkor narx tushishi bildirishnomasi',
+        '• 📊 Ogohlantirishlarni boshqarish',
+        '• ⭐ Saqlangan mahsulotlarni ko\'rish',
+        '• 📬 Bildirishnomalar tarixini ko\'rish',
+        '• 🌐 English va O\'zbek til qo\'llab-quvvatlash',
+      ],
     },
   },
 };
@@ -288,15 +359,15 @@ export type Locale = 'en' | 'uz';
 export function getMessage(locale: Locale, path: string, ...args: any[]): string {
   const keys = path.split('.');
   let value: any = MESSAGES[locale];
-  
+
   for (const key of keys) {
     value = value?.[key];
     if (value === undefined) return path;
   }
-  
+
   if (typeof value === 'function') {
     return value(...args);
   }
-  
+
   return value || path;
 }

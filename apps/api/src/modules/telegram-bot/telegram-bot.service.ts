@@ -308,16 +308,16 @@ export class TelegramBotService implements OnModuleInit {
     const locale = ctx.session.locale || 'en';
     const page = ctx.session.page || 1;
     const pageSize = 5;
+    const msgs = MESSAGES[locale];
 
     try {
       const alerts = await this.alertsService.listByUser(ctx.session.userId!);
-      
+
       if (alerts.length === 0) {
-        const message = `${getMessage(locale, 'alerts.title')}\n\n${getMessage(locale, 'alerts.empty')}\n\n${getMessage(locale, 'alerts.emptyHint')}`;
-        const keyboard = Markup.inlineKeyboard([[Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')]]);
-        
-        if (edit) await ctx.editMessageText(message, keyboard);
-        else await ctx.reply(message, keyboard);
+        const message = `${msgs.alerts.title}\n\n${msgs.alerts.empty}`;
+        const keyboard = Markup.inlineKeyboard([[Markup.button.callback(msgs.menu.back, 'menu')]]);
+        if (edit) await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
+        else await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
         return;
       }
 
@@ -325,44 +325,51 @@ export class TelegramBotService implements OnModuleInit {
       const pageAlerts = alerts.slice(start, start + pageSize);
       const totalPages = Math.ceil(alerts.length / pageSize);
 
-      let message = `${getMessage(locale, 'alerts.title')}\n\n`;
-      
-      for (const alert of pageAlerts) {
-        const statusEmoji = alert.status === 'ACTIVE' ? '✅' : alert.status === 'PAUSED' ? '⏸️' : '🔔';
-        const condition = getMessage(locale, `alerts.condition.${alert.condition}`);
-        message += `${statusEmoji} <b>${alert.productTitle}</b>\n`;
-        message += `   ${condition} ${alert.threshold} ${alert.currency}\n`;
-        message += `   ${getMessage(locale, `alerts.status.${alert.status}`)}\n\n`;
+      let message = msgs.alerts.header(alerts.length) + '\n\n';
+
+      for (let i = 0; i < pageAlerts.length; i++) {
+        const alert = pageAlerts[i];
+        const statusKey = alert.status as keyof typeof msgs.alerts.status;
+        const statusEmoji = msgs.alerts.statusEmoji[statusKey] || '⚪';
+        const status = msgs.alerts.status[statusKey] || alert.status;
+        const condition = msgs.alerts.condition[alert.condition as keyof typeof msgs.alerts.condition] || alert.condition;
+        message += msgs.alerts.item(
+          start + i + 1,
+          alert.productTitle,
+          condition,
+          String(alert.threshold),
+          alert.currency,
+          status,
+          statusEmoji,
+        ) + '\n\n';
       }
 
+      // Per-alert action buttons
       const buttons: any[] = [];
-      
-      // Add alert action buttons for first alert
-      if (pageAlerts.length > 0) {
-        const alert = pageAlerts[0];
+      for (const alert of pageAlerts) {
         const row: any[] = [];
+        const shortTitle = alert.productTitle.length > 20 ? alert.productTitle.slice(0, 20) + '…' : alert.productTitle;
         if (alert.status === 'ACTIVE') {
-          row.push(Markup.button.callback('⏸️', `alert_pause_${alert.id}`));
+          row.push(Markup.button.callback(`⏸ ${shortTitle}`, `alert_pause_${alert.id}`));
         } else if (alert.status === 'PAUSED') {
-          row.push(Markup.button.callback('▶️', `alert_resume_${alert.id}`));
+          row.push(Markup.button.callback(`▶️ ${shortTitle}`, `alert_resume_${alert.id}`));
         }
-        row.push(Markup.button.callback('🗑️', `alert_delete_${alert.id}`));
+        row.push(Markup.button.callback('🗑', `alert_delete_${alert.id}`));
         buttons.push(row);
       }
 
       // Pagination
       if (totalPages > 1) {
         const paginationRow: any[] = [];
-        if (page > 1) paginationRow.push(Markup.button.callback('◀️', `page_alerts_${page - 1}`));
-        paginationRow.push(Markup.button.callback(`${page}/${totalPages}`, 'noop'));
-        if (page < totalPages) paginationRow.push(Markup.button.callback('▶️', `page_alerts_${page + 1}`));
+        if (page > 1) paginationRow.push(Markup.button.callback(msgs.buttons.previous, `page_alerts_${page - 1}`));
+        paginationRow.push(Markup.button.callback(`${page} / ${totalPages}`, 'noop'));
+        if (page < totalPages) paginationRow.push(Markup.button.callback(msgs.buttons.next, `page_alerts_${page + 1}`));
         buttons.push(paginationRow);
       }
 
-      buttons.push([Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')]);
+      buttons.push([Markup.button.callback(msgs.menu.back, 'menu')]);
 
       const keyboard = Markup.inlineKeyboard(buttons);
-      
       if (edit) await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
       else await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
     } catch (error) {
@@ -377,46 +384,58 @@ export class TelegramBotService implements OnModuleInit {
     const locale = ctx.session.locale || 'en';
     const page = ctx.session.page || 1;
     const pageSize = 5;
+    const msgs = MESSAGES[locale];
+    const webUrl = this.config.get<string>('app.frontendUrl') || 'https://pricepulse.app';
 
     try {
       const result = await this.savedProductsService.list(ctx.session.userId!, page, pageSize);
-      
+
       if (result.items.length === 0) {
-        const message = `${getMessage(locale, 'saved.title')}\n\n${getMessage(locale, 'saved.empty')}\n\n${getMessage(locale, 'saved.emptyHint')}`;
-        const keyboard = Markup.inlineKeyboard([[Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')]]);
-        
-        if (edit) await ctx.editMessageText(message, keyboard);
-        else await ctx.reply(message, keyboard);
+        const message = `${msgs.saved.title}\n\n${msgs.saved.empty}`;
+        const keyboard = Markup.inlineKeyboard([[Markup.button.callback(msgs.menu.back, 'menu')]]);
+        if (edit) await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
+        else await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
         return;
       }
 
-      let message = `${getMessage(locale, 'saved.title')}\n\n`;
-      
-      for (const item of result.items) {
+      const totalPages = Math.ceil(result.total / pageSize);
+      let message = msgs.saved.header(result.total) + '\n\n';
+
+      for (let i = 0; i < result.items.length; i++) {
+        const item = result.items[i];
         const product = item.product;
-        message += `⭐ <b>${product.title}</b>\n`;
-        if (product.lowestPrice) {
-          message += `   💰 ${getMessage(locale, 'saved.price')} ${product.lowestPrice} ${product.currency}\n`;
-        }
-        message += `   ${getMessage(locale, 'saved.marketplaces', product.marketplaceCount)}\n\n`;
+        const productUrl = `${webUrl}/products/${product.slug || product.id}`;
+        const price = product.lowestPrice ? String(product.lowestPrice) : '';
+        const currency = product.currency || 'USD';
+        const stores = product.marketplaceCount || 0;
+
+        message += msgs.saved.item(
+          (page - 1) * pageSize + i + 1,
+          product.title,
+          price,
+          currency,
+          stores,
+          productUrl,
+        ) + '\n\n';
       }
 
-      const totalPages = Math.ceil(result.total / pageSize);
       const buttons: any[] = [];
 
       // Pagination
       if (totalPages > 1) {
         const paginationRow: any[] = [];
-        if (page > 1) paginationRow.push(Markup.button.callback('◀️', `page_saved_${page - 1}`));
-        paginationRow.push(Markup.button.callback(`${page}/${totalPages}`, 'noop'));
-        if (page < totalPages) paginationRow.push(Markup.button.callback('▶️', `page_saved_${page + 1}`));
+        if (page > 1) paginationRow.push(Markup.button.callback(msgs.buttons.previous, `page_saved_${page - 1}`));
+        paginationRow.push(Markup.button.callback(`${page} / ${totalPages}`, 'noop'));
+        if (page < totalPages) paginationRow.push(Markup.button.callback(msgs.buttons.next, `page_saved_${page + 1}`));
         buttons.push(paginationRow);
       }
 
-      buttons.push([Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')]);
+      buttons.push([
+        Markup.button.url('🌐 View All on Website', `${webUrl}/saved`),
+      ]);
+      buttons.push([Markup.button.callback(msgs.menu.back, 'menu')]);
 
       const keyboard = Markup.inlineKeyboard(buttons);
-      
       if (edit) await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
       else await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
     } catch (error) {
@@ -429,33 +448,35 @@ export class TelegramBotService implements OnModuleInit {
     if (!await this.ensureLinked(ctx)) return;
 
     const locale = ctx.session.locale || 'en';
+    const msgs = MESSAGES[locale];
 
     try {
-      const notifications = await this.notificationsService.listForUser(ctx.session.userId!, 20);
-      
+      const notifications = await this.notificationsService.listForUser(ctx.session.userId!, 15);
+
       if (notifications.length === 0) {
-        const message = `${getMessage(locale, 'notifications.title')}\n\n${getMessage(locale, 'notifications.empty')}`;
-        const keyboard = Markup.inlineKeyboard([[Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')]]);
-        
-        if (edit) await ctx.editMessageText(message, keyboard);
-        else await ctx.reply(message, keyboard);
+        const message = `${msgs.notifications.title}\n\n${msgs.notifications.empty}`;
+        const keyboard = Markup.inlineKeyboard([[Markup.button.callback(msgs.menu.back, 'menu')]]);
+        if (edit) await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
+        else await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
         return;
       }
 
-      let message = `${getMessage(locale, 'notifications.title')}\n\n`;
-      
-      for (const notif of notifications.slice(0, 10)) {
-        const statusEmoji = getMessage(locale, `notifications.status.${notif.status}`);
-        const date = new Date(notif.createdAt).toLocaleDateString();
-        message += `${statusEmoji} <b>${notif.subject}</b>\n`;
-        message += `   ${date}\n\n`;
+      let message = msgs.notifications.header(notifications.length) + '\n\n';
+
+      for (const notif of notifications) {
+        const statusKey = notif.status as keyof typeof msgs.notifications.status;
+        const statusEmoji = msgs.notifications.status[statusKey] || '📌';
+        const date = new Date(notif.createdAt).toLocaleString(locale === 'uz' ? 'uz-UZ' : 'en-US', {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+        });
+        message += msgs.notifications.item(notif.subject, date, statusEmoji) + '\n\n';
       }
 
       const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback(getMessage(locale, 'buttons.refresh'), 'notifications')],
-        [Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')],
+        [Markup.button.callback(msgs.buttons.refresh, 'notifications')],
+        [Markup.button.callback(msgs.menu.back, 'menu')],
       ]);
-      
+
       if (edit) await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
       else await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
     } catch (error) {
@@ -468,30 +489,37 @@ export class TelegramBotService implements OnModuleInit {
     if (!await this.ensureLinked(ctx)) return;
 
     const locale = ctx.session.locale || 'en';
-    const message = getMessage(locale, 'settings.title');
-    
+    const msgs = MESSAGES[locale];
+    const webUrl = this.config.get<string>('app.frontendUrl') || 'https://pricepulse.app';
+
     const keyboard = Markup.inlineKeyboard([
-      [Markup.button.callback(getMessage(locale, 'settings.language'), 'select_language')],
-      [Markup.button.callback(getMessage(locale, 'settings.accountInfo'), 'account_info')],
-      [Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')],
+      [Markup.button.callback(msgs.settings.language, 'select_language')],
+      [Markup.button.url('🌐 Open Website', webUrl)],
+      [Markup.button.url('⚙️ Account Settings', `${webUrl}/settings`)],
+      [Markup.button.callback(msgs.buttons.unlinkAccount, 'confirm_unlink')],
+      [Markup.button.callback(msgs.menu.back, 'menu')],
     ]);
-    
-    await ctx.reply(message, keyboard);
+
+    await ctx.reply(msgs.settings.title, { parse_mode: 'HTML', ...keyboard });
   }
 
   private async showHelp(ctx: BotContext) {
     const locale = ctx.session.locale || 'en';
-    const help = MESSAGES[locale].help;
-    
-    let message = `${help.title}\n\n`;
-    message += `${help.description}\n\n`;
-    message += help.commands.join('\n') + '\n\n';
-    message += `${help.features}\n`;
-    message += help.featureList.join('\n');
+    const msgs = MESSAGES[locale];
+    const webUrl = this.config.get<string>('app.frontendUrl') || 'https://pricepulse.app';
 
-    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')]]);
-    
-    await ctx.reply(message, keyboard);
+    let message = `${msgs.help.title}\n\n`;
+    message += `${msgs.help.description}\n`;
+    message += msgs.help.commands.map(c => `  <code>${c}</code>`).join('\n');
+    message += '\n' + msgs.help.features + '\n';
+    message += msgs.help.featureList.join('\n');
+
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.url('🌐 Open PricePulse', webUrl)],
+      [Markup.button.callback(msgs.menu.back, 'menu')],
+    ]);
+
+    await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
   }
 
   private async handleLinkAccount(ctx: BotContext) {
@@ -723,23 +751,30 @@ export class TelegramBotService implements OnModuleInit {
       if (!user?.telegramChatId) return;
 
       const locale = (user.locale as Locale) || 'en';
-      const oldPrice = offer.originalPrice || offer.currentPrice;
-      const newPrice = offer.currentPrice;
-      const savings = oldPrice - newPrice;
-      const savingsPercent = ((savings / oldPrice) * 100).toFixed(1);
+      const msgs = MESSAGES[locale];
+      const webUrl = this.config.get<string>('app.frontendUrl') || 'https://pricepulse.app';
 
-      let message = `🔥 <b>${getMessage(locale, 'alert_notification.title')}</b>\n\n`;
-      message += `📱 <b>${product.title}</b>\n\n`;
-      message += `${getMessage(locale, 'alert_notification.oldPrice')}: <s>${oldPrice} ${product.currency}</s>\n`;
-      message += `${getMessage(locale, 'alert_notification.newPrice')}: <b>${newPrice} ${product.currency}</b>\n`;
-      message += `${getMessage(locale, 'alert_notification.save')}: <b>${savings} ${product.currency} (${savingsPercent}%)</b>\n\n`;
-      message += `${getMessage(locale, 'alert_notification.marketplace')}: ${offer.marketplace.name}`;
+      const oldPrice = Number(offer.originalPrice || offer.currentPrice);
+      const newPrice = Number(offer.currentPrice);
+      const savings = oldPrice - newPrice;
+      const savingsPct = ((savings / oldPrice) * 100).toFixed(0);
+      const currency = offer.currency || product.currency || 'USD';
+      const productUrl = `${webUrl}/products/${product.slug || product.id}`;
+
+      const message =
+        `🔥 <b>${msgs.alert_notification.title}</b>\n` +
+        `${'─'.repeat(28)}\n\n` +
+        `📦 <b>${product.title}</b>\n\n` +
+        `💸 <s>${oldPrice} ${currency}</s>  →  <b>${newPrice} ${currency}</b>\n` +
+        `🎉 ${msgs.alert_notification.save}: <b>${savings.toFixed(2)} ${currency}</b> <i>(${savingsPct}% off)</i>\n\n` +
+        `🏪 ${msgs.alert_notification.marketplace} <b>${offer.marketplace?.name || 'Store'}</b>\n` +
+        `${'─'.repeat(28)}`;
 
       const keyboard = Markup.inlineKeyboard([
-        [Markup.button.url(getMessage(locale, 'buttons.viewProduct'), offer.url)],
+        [Markup.button.url('🛒 View Deal', offer.externalUrl || productUrl)],
         [
-          Markup.button.callback(getMessage(locale, 'buttons.pause'), `alert_pause_${alert.id}`),
-          Markup.button.callback(getMessage(locale, 'buttons.delete'), `alert_delete_${alert.id}`),
+          Markup.button.url('📊 All Prices', productUrl),
+          Markup.button.callback('⏸ Pause Alert', `alert_pause_${alert.id}`),
         ],
       ]);
 

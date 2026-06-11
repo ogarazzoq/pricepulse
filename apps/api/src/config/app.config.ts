@@ -5,6 +5,7 @@ export default registerAs('app', () => ({
   port: Number(process.env.PORT || 4000),
   apiPrefix: process.env.API_PREFIX || 'api/v1',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  frontendUrl: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:3000',
   priceSyncCron: process.env.PRICE_SYNC_CRON || '0 */2 * * *',
   alertEvaluateCron: process.env.ALERT_EVALUATE_CRON || '*/15 * * * *',
 }));

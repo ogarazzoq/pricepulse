@@ -21,7 +21,11 @@ export class HealthController {
       checks.database = 'fail';
     }
 
-    const ok = Object.values(checks).every((v) => v === 'ok');
-    return { status: ok ? 'healthy' : 'degraded', checks, timestamp: new Date().toISOString() };
+    // API is healthy even if some services are degraded
+    return {
+      status: checks.api === 'ok' ? 'healthy' : 'degraded',
+      checks,
+      timestamp: new Date().toISOString(),
+    };
   }
 }
