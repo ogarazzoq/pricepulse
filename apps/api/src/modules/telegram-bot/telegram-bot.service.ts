@@ -158,27 +158,29 @@ export class TelegramBotService implements OnModuleInit {
 
     this.bot.action('alerts', async (ctx) => {
       await ctx.answerCbQuery();
-      await this.showAlerts(ctx);
+      ctx.session.page = 1;
+      await this.showAlerts(ctx, true);
     });
 
     this.bot.action('saved', async (ctx) => {
       await ctx.answerCbQuery();
-      await this.showSavedProducts(ctx);
+      ctx.session.page = 1;
+      await this.showSavedProducts(ctx, true);
     });
 
     this.bot.action('notifications', async (ctx) => {
       await ctx.answerCbQuery();
-      await this.showNotifications(ctx);
+      await this.showNotifications(ctx, true);
     });
 
     this.bot.action('settings', async (ctx) => {
       await ctx.answerCbQuery();
-      await this.showSettings(ctx);
+      await this.showSettings(ctx, true);
     });
 
     this.bot.action('help', async (ctx) => {
       await ctx.answerCbQuery();
-      await this.showHelp(ctx);
+      await this.showHelp(ctx, true);
     });
 
     // Account linking
@@ -193,6 +195,25 @@ export class TelegramBotService implements OnModuleInit {
     });
 
     // Language settings
+    this.bot.action('select_language', async (ctx) => {
+      await ctx.answerCbQuery();
+      const locale = ctx.session.locale || 'en';
+      const msgs = MESSAGES[locale];
+      await ctx.editMessageText(
+        msgs.settings.selectLanguage,
+        {
+          parse_mode: 'HTML',
+          ...Markup.inlineKeyboard([
+            [
+              Markup.button.callback('🇬🇧 English', 'lang_en'),
+              Markup.button.callback('🇺🇿 O\'zbek', 'lang_uz'),
+            ],
+            [Markup.button.callback(msgs.menu.back, 'settings')],
+          ]),
+        }
+      );
+    });
+
     this.bot.action('lang_en', async (ctx) => {
       await ctx.answerCbQuery();
       ctx.session.locale = 'en';
@@ -211,6 +232,11 @@ export class TelegramBotService implements OnModuleInit {
         getMessage('uz', 'settings.languageChanged'),
         this.getMainMenuKeyboard('uz'),
       );
+    });
+
+    // Noop - used for display-only buttons (e.g. page numbers)
+    this.bot.action('noop', async (ctx) => {
+      await ctx.answerCbQuery();
     });
 
     // Alert actions
@@ -488,7 +514,7 @@ export class TelegramBotService implements OnModuleInit {
     }
   }
 
-  private async showSettings(ctx: BotContext) {
+  private async showSettings(ctx: BotContext, edit = false) {
     if (!await this.ensureLinked(ctx)) return;
 
     const locale = ctx.session.locale || 'en';
@@ -503,10 +529,14 @@ export class TelegramBotService implements OnModuleInit {
       [Markup.button.callback(msgs.menu.back, 'menu')],
     ]);
 
-    await ctx.reply(msgs.settings.title, { parse_mode: 'HTML', ...keyboard });
+    if (edit) {
+      await ctx.editMessageText(msgs.settings.title, { parse_mode: 'HTML', ...keyboard });
+    } else {
+      await ctx.reply(msgs.settings.title, { parse_mode: 'HTML', ...keyboard });
+    }
   }
 
-  private async showHelp(ctx: BotContext) {
+  private async showHelp(ctx: BotContext, edit = false) {
     const locale = ctx.session.locale || 'en';
     const msgs = MESSAGES[locale];
     const webUrl = this.getWebUrl();
@@ -522,7 +552,11 @@ export class TelegramBotService implements OnModuleInit {
       [Markup.button.callback(msgs.menu.back, 'menu')],
     ]);
 
-    await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
+    if (edit) {
+      await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
+    } else {
+      await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
+    }
   }
 
   private async handleLinkAccount(ctx: BotContext) {
