@@ -74,14 +74,32 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  refreshTokens RefreshToken[]
-  alerts        Alert[]
-  notifications Notification[]
-  savedProducts SavedProduct[]
-  collections   Collection[]
-  searchHistory SearchHistory[]
+  refreshTokens          RefreshToken[]
+  alerts                 Alert[]
+  notifications          Notification[]
+  savedProducts          SavedProduct[]
+  collections            Collection[]
+  searchHistory          SearchHistory[]
+  telegramVerifications  TelegramVerification[]
 
   @@index([role])
+}
+
+model TelegramVerification {
+  id        String    @id @default(cuid())
+  userId    String
+  chatId    String
+  code      String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, code])
+  @@index([userId])
+  @@index([code])
+  @@index([expiresAt])
 }
 
 model RefreshToken {

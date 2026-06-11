@@ -5,6 +5,7 @@ export interface BotSession {
   locale?: 'en' | 'uz';
   page?: number;
   collectionId?: string | null;
+  awaitingCode?: boolean;
 }
 
 export interface BotContext extends Context {

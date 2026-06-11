@@ -268,12 +268,18 @@ export class TelegramBotService implements OnModuleInit {
   private registerTextHandlers() {
     if (!this.bot) return;
 
-    // Handle text messages (product search)
+    // Handle text messages
     this.bot.on('text', async (ctx) => {
       const text = ctx.message.text;
       
       // Skip if it's a command
       if (text.startsWith('/')) return;
+
+      // Check if waiting for verification code
+      if (ctx.session.awaitingCode) {
+        await this.handleCodeInput(ctx, text.trim());
+        return;
+      }
 
       // Simple product search (can be enhanced)
       const locale = ctx.session.locale || 'en';
@@ -479,21 +485,87 @@ export class TelegramBotService implements OnModuleInit {
     const chatId = String(ctx.chat?.id);
     const locale = ctx.session.locale || 'en';
 
-    // Generate verification code
-    const code = this.generateVerificationCode();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Store in database (you'll need to create this table)
-    // For now, store in Redis or temporary storage
-    // await this.prisma.telegramVerification.create({ data: { chatId, code, expiresAt } });
-
     const linking = MESSAGES[locale].linking;
     let message = `${linking.instructions}\n\n`;
     message += linking.steps.join('\n') + '\n\n';
-    message += `${linking.code}\n<code>${code}</code>\n\n`;
     message += linking.expires;
 
-    await ctx.editMessageText(message, { parse_mode: 'HTML' });
+    await ctx.editMessageText(message, { 
+      parse_mode: 'HTML',
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback(getMessage(locale, 'menu.back'), 'menu')],
+      ]),
+    });
+
+    // Set state to wait for code input
+    ctx.session.awaitingCode = true;
+  }
+
+  private async handleCodeInput(ctx: BotContext, code: string) {
+    const chatId = String(ctx.chat?.id);
+    const locale = ctx.session.locale || 'en';
+
+    try {
+      // Find verification code in database
+      const verification = await this.prisma.telegramVerification.findFirst({
+        where: {
+          code: code.toUpperCase(),
+          usedAt: null,
+          expiresAt: { gte: new Date() },
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      if (!verification) {
+        await ctx.reply(getMessage(locale, 'linking.invalidCode'));
+        return;
+      }
+
+      // Check if this telegram account is already linked to another user
+      const existingUser = await this.prisma.user.findFirst({
+        where: {
+          telegramChatId: chatId,
+          id: { not: verification.userId },
+        },
+      });
+
+      if (existingUser) {
+        await ctx.reply(getMessage(locale, 'linking.alreadyLinked'));
+        return;
+      }
+
+      // Update user with telegram chat ID
+      await this.prisma.user.update({
+        where: { id: verification.userId },
+        data: { 
+          telegramChatId: chatId,
+          locale: locale, // Save user's selected language
+        },
+      });
+
+      // Mark verification as used
+      await this.prisma.telegramVerification.update({
+        where: { id: verification.id },
+        data: {
+          usedAt: new Date(),
+          chatId,
+        },
+      });
+
+      // Set session
+      ctx.session.userId = verification.userId;
+      ctx.session.awaitingCode = false;
+
+      await ctx.reply(
+        `✅ ${getMessage(locale, 'linking.success')}\n\n${getMessage(locale, 'welcome.title')}`,
+        this.getMainMenuKeyboard(locale),
+      );
+    } catch (error) {
+      this.logger.error('Code verification error:', error);
+      await ctx.reply(getMessage(locale, 'errors.serverError'));
+    }
   }
 
   private async handleUnlinkAccount(ctx: BotContext) {
