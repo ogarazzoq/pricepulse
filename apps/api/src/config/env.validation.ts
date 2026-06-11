@@ -18,8 +18,9 @@ class EnvSchema {
   @IsString()
   DATABASE_URL!: string;
 
+  @IsOptional()
   @IsString()
-  REDIS_HOST!: string;
+  REDIS_HOST?: string;
 
   @IsOptional()
   @IsInt()

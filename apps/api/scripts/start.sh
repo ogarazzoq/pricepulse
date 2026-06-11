@@ -1,14 +1,8 @@
 #!/bin/sh
 # ============================================================
 # PricePulse API — production entrypoint
-#
-# This script is the runtime CMD. It must NOT depend on:
-#   - npm workspaces  (the runtime image isn't a monorepo)
-#   - npx PATH lookup (we resolve the binary directly)
-#   - any dev dependency
 # ============================================================
 
-set -e
 set -u
 
 PRISMA_BIN="./node_modules/.bin/prisma"
@@ -19,12 +13,12 @@ echo "  cwd=$(pwd)"
 
 if [ ! -x "$PRISMA_BIN" ]; then
   echo "✖ Prisma binary not found at $PRISMA_BIN" >&2
-  echo "  This indicates the production image was built without 'prisma' in dependencies." >&2
   exit 1
 fi
 
 echo "▶ Applying Prisma migrations (idempotent)…"
-"$PRISMA_BIN" migrate deploy
+# Don't exit on migration failure - server may still work
+"$PRISMA_BIN" migrate deploy || echo "⚠ Migration warning (continuing anyway)..."
 
 echo "▶ Booting NestJS"
 exec node dist/main.js

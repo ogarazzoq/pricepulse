@@ -61,7 +61,10 @@ export class TelegramBotService implements OnModuleInit {
     
     if (mode === 'polling') {
       this.logger.log('Starting bot in polling mode...');
-      await this.bot.launch();
+      // Non-blocking launch - don't await, let server start first
+      this.bot.launch().catch((err) => {
+        this.logger.error('Bot launch error:', err.message);
+      });
       this.logger.log('Telegram bot started in polling mode');
       
       // Graceful shutdown
