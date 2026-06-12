@@ -51,6 +51,13 @@ export class TelegramBotService implements OnModuleInit {
       return next();
     });
 
+    // Global error handler - prevents RangeError recursion
+    this.bot.catch(async (err: any, ctx: BotContext) => {
+      this.logger.error(`Unhandled bot error for ${ctx.updateType}:`, err?.message || err);
+      // Answer callback query to remove loading state, then stop
+      try { await ctx.answerCbQuery('⚠️ Error occurred').catch(() => {}); } catch {}
+    });
+
     // Register handlers
     this.registerCommands();
     this.registerCallbacks();
@@ -529,11 +536,7 @@ export class TelegramBotService implements OnModuleInit {
       [Markup.button.callback(msgs.menu.back, 'menu')],
     ]);
 
-    if (edit) {
-      await ctx.editMessageText(msgs.settings.title, { parse_mode: 'HTML', ...keyboard });
-    } else {
-      await ctx.reply(msgs.settings.title, { parse_mode: 'HTML', ...keyboard });
-    }
+    await this.safeSend(ctx, msgs.settings.title, { parse_mode: 'HTML', ...keyboard }, edit);
   }
 
   private async showHelp(ctx: BotContext, edit = false) {
@@ -552,11 +555,7 @@ export class TelegramBotService implements OnModuleInit {
       [Markup.button.callback(msgs.menu.back, 'menu')],
     ]);
 
-    if (edit) {
-      await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
-    } else {
-      await ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
-    }
+    await this.safeSend(ctx, message, { parse_mode: 'HTML', ...keyboard }, edit);
   }
 
   private async handleLinkAccount(ctx: BotContext) {
@@ -712,6 +711,30 @@ export class TelegramBotService implements OnModuleInit {
     }
   }
 
+  // ========== Safe send helper ==========
+  private async safeSend(
+    ctx: BotContext,
+    message: string,
+    opts: any,
+    edit: boolean,
+  ) {
+    if (edit) {
+      try {
+        await ctx.editMessageText(message, opts);
+        return;
+      } catch (e: any) {
+        // "message is not modified" is OK - ignore
+        if (e?.description?.includes('message is not modified')) return;
+        // Otherwise fall through to reply
+      }
+    }
+    try {
+      await ctx.reply(message, opts);
+    } catch (e: any) {
+      this.logger.error('safeSend reply error:', e?.message);
+    }
+  }
+
   // ========== Utility Methods ==========
 
   private getWebUrl(): string {
@@ -747,16 +770,27 @@ export class TelegramBotService implements OnModuleInit {
       return true;
     }
 
-    // Not linked
+    // Not linked - detect context type
     ctx.session.userId = undefined;
     const locale = ctx.session.locale || 'en';
     const msgs = MESSAGES[locale];
-    await ctx.reply(msgs.errors.notLinked, {
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback(msgs.buttons.linkAccount, 'link_account')],
+    ]);
+
+    // Try editMessageText first (works in callback context)
+    // Fall back to reply (works in command context)
+    const sent = await (ctx as any).editMessageText(msgs.errors.notLinked, {
       parse_mode: 'HTML',
-      ...Markup.inlineKeyboard([
-        [Markup.button.callback(msgs.buttons.linkAccount, 'link_account')],
-      ]),
-    });
+      ...keyboard,
+    }).catch(() => null);
+
+    if (!sent) {
+      await (ctx as any).reply(msgs.errors.notLinked, {
+        parse_mode: 'HTML',
+        ...keyboard,
+      }).catch(() => {});
+    }
     return false;
   }
 
@@ -777,10 +811,12 @@ export class TelegramBotService implements OnModuleInit {
     const locale = ctx.session.locale || 'en';
     const msgs = MESSAGES[locale];
     this.logger.error('Bot error:', error?.message || error);
+    // Don't retry ctx calls - just log to avoid recursion
     try {
-      await ctx.reply(msgs.errors.serverError, { parse_mode: 'HTML' });
+      await ctx.answerCbQuery('⚠️ An error occurred').catch(() => {});
+      await ctx.reply(msgs.errors.serverError, { parse_mode: 'HTML' }).catch(() => {});
     } catch {
-      // Context may be stale - ignore
+      // Silence all errors to prevent recursion
     }
   }
 
