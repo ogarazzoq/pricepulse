@@ -277,57 +277,7 @@ export default function SavedProductsPage() {
         </motion.div>
       </div>
 
-      {/* Collections Filter - compact tabs style */}
-      {collections && collections.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex items-center gap-2 flex-wrap"
-        >
-          <Link
-            href="/saved"
-            onClick={() => setFilterDropdownOpen(false)}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
-              !selectedCollectionId
-                ? "border-primary bg-primary/10 text-primary font-medium"
-                : "border-border/60 hover:border-primary/40 hover:bg-accent/50 text-muted-foreground"
-            )}
-          >
-            <FolderOpen className="h-3.5 w-3.5" />
-            All
-          </Link>
-          {collections.map((collection) => {
-            const IconComponent = getCollectionIcon(collection.icon);
-            const isActive = selectedCollectionId === collection.id;
-            return (
-              <Link
-                key={collection.id}
-                href={`/saved?collection=${collection.id}`}
-                onClick={() => setFilterDropdownOpen(false)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
-                  isActive
-                    ? "font-medium"
-                    : "border-border/60 hover:border-primary/40 hover:bg-accent/50 text-muted-foreground"
-                )}
-                style={isActive ? { borderColor: collection.color, backgroundColor: `${collection.color}15`, color: collection.color } : undefined}
-              >
-                <IconComponent className="h-3.5 w-3.5" />
-                {collection.name}
-              </Link>
-            );
-          })}
-          <button
-            onClick={() => setCollectionDialogOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border/60 px-3 py-1 text-sm text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            New
-          </button>
-        </motion.div>
-      )}
+      {/* Collection filter pills removed - saved page shows all liked items */}
 
       <AnimatePresence mode="wait">
         {isSelectionMode && items.length > 0 && (

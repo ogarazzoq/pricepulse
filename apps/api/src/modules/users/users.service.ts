@@ -122,6 +122,16 @@ export class UsersService {
     };
   }
 
+  async setRole(userId: string, role: 'USER' | 'ADMIN') {
+    const user = await this.repo.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role: role as any },
+      select: { id: true, email: true, name: true, role: true },
+    });
+  }
+
   async unlinkTelegram(userId: string) {
     const user = await this.repo.findById(userId);
     if (!user) throw new NotFoundException('User not found');
