@@ -129,22 +129,23 @@ export class BootstrapService implements OnApplicationBootstrap {
   }
 
   private async ensureSuperAdmin() {
-    // Hardcoded super-admin that always gets ADMIN role
-    const superAdminEmail = 'palonziy@palonziy.palonziy';
-    const superAdminName = 'palonziy';
-    const superAdminPassword = 'P@l0nziy';
+    // Super-admin credentials come from environment variables.
+    // Set SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, SUPER_ADMIN_NAME in your .env
+    const email = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
+    const password = process.env.SUPER_ADMIN_PASSWORD;
+    const name = process.env.SUPER_ADMIN_NAME || 'Super Admin';
 
-    const passwordHash = await argon2.hash(superAdminPassword);
+    if (!email || !password) {
+      // No super-admin configured via env — skip silently
+      return;
+    }
+
+    const passwordHash = await argon2.hash(password);
     await this.prisma.user.upsert({
-      where: { email: superAdminEmail },
-      update: { role: 'ADMIN', name: superAdminName, passwordHash },
-      create: {
-        email: superAdminEmail,
-        name: superAdminName,
-        passwordHash,
-        role: 'ADMIN',
-      },
+      where: { email },
+      update: { role: 'ADMIN', name, passwordHash },
+      create: { email, name, passwordHash, role: 'ADMIN' },
     });
-    this.logger.log(`Super-admin "${superAdminEmail}" ensured.`);
+    this.logger.log(`Super-admin "${email}" ensured.`);
   }
 }
