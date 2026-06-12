@@ -11,3 +11,6 @@ coverage
 .idea
 .vscode
 prisma/migrations/dev.db*
+
+# Kiro AI IDE specs (editor-specific, not part of the codebase)
+.kiro/
