@@ -42,49 +42,16 @@ export class BootstrapService implements OnApplicationBootstrap {
 
   // -------------------------------------------------------------------
   private async ensureMarketplaces() {
+    // isActive=true only for kuai — admin can enable others via DB/admin panel
     const marketplaces = [
-      {
-        slug: 'fakestore',
-        name: 'FakeStore',
-        logoUrl: 'https://fakestoreapi.com/icons/logo.png',
-        websiteUrl: 'https://fakestoreapi.com',
-        baseCurrency: 'USD',
-      },
-      {
-        slug: 'dummyjson',
-        name: 'DummyJSON',
-        logoUrl: 'https://dummyjson.com/public/img/dummyjson-logo.svg',
-        websiteUrl: 'https://dummyjson.com',
-        baseCurrency: 'USD',
-      },
-      {
-        slug: 'escuelajs',
-        name: 'EscuelaJS Store',
-        logoUrl: 'https://api.escuelajs.co/favicon.ico',
-        websiteUrl: 'https://api.escuelajs.co',
-        baseCurrency: 'USD',
-      },
-      {
-        slug: 'openfoodfacts',
-        name: 'Open Food Facts',
-        logoUrl: 'https://world.openfoodfacts.org/images/icons/dist/logo.svg',
-        websiteUrl: 'https://world.openfoodfacts.org',
-        baseCurrency: 'USD',
-      },
-      {
-        slug: 'bestbuy',
-        name: 'Best Buy',
-        logoUrl: 'https://logo.clearbit.com/bestbuy.com',
-        websiteUrl: 'https://www.bestbuy.com',
-        baseCurrency: 'USD',
-      },
-      {
-        slug: 'kuai',
-        name: 'Kuai',
-        logoUrl: 'https://cdn.u-code.io/logo.png',
-        websiteUrl: 'https://api.admin.u-code.io',
-        baseCurrency: 'USD',
-      },
+      { slug: 'fakestore',     name: 'FakeStore',         logoUrl: 'https://fakestoreapi.com/icons/logo.png',                        websiteUrl: 'https://fakestoreapi.com',          baseCurrency: 'USD', isActive: false },
+      { slug: 'dummyjson',     name: 'DummyJSON',         logoUrl: 'https://dummyjson.com/public/img/dummyjson-logo.svg',             websiteUrl: 'https://dummyjson.com',             baseCurrency: 'USD', isActive: false },
+      { slug: 'escuelajs',     name: 'EscuelaJS Store',   logoUrl: 'https://api.escuelajs.co/favicon.ico',                           websiteUrl: 'https://api.escuelajs.co',          baseCurrency: 'USD', isActive: false },
+      { slug: 'openfoodfacts', name: 'Open Food Facts',   logoUrl: 'https://world.openfoodfacts.org/images/icons/dist/logo.svg',     websiteUrl: 'https://world.openfoodfacts.org',   baseCurrency: 'USD', isActive: false },
+      { slug: 'bestbuy',       name: 'Best Buy',          logoUrl: 'https://logo.clearbit.com/bestbuy.com',                          websiteUrl: 'https://www.bestbuy.com',           baseCurrency: 'USD', isActive: false },
+      { slug: 'olcha',         name: 'Olcha.uz',          logoUrl: 'https://olcha.uz/image/original/logo.png',                       websiteUrl: 'https://olcha.uz',                  baseCurrency: 'UZS', isActive: false },
+      { slug: 'amazon',        name: 'Amazon',            logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg', websiteUrl: 'https://www.amazon.com',       baseCurrency: 'USD', isActive: false },
+      { slug: 'kuai',          name: 'Kuai',              logoUrl: 'https://cdn.u-code.io/logo.png',                                 websiteUrl: 'https://api.admin.u-code.io',       baseCurrency: 'USD', isActive: true  },
     ];
 
     let created = 0;
@@ -92,14 +59,14 @@ export class BootstrapService implements OnApplicationBootstrap {
     for (const m of marketplaces) {
       const existing = await this.prisma.marketplace.findUnique({ where: { slug: m.slug } });
       if (existing) {
-        // Don't touch isActive — admins may have disabled it deliberately.
         await this.prisma.marketplace.update({
           where: { slug: m.slug },
-          data: { name: m.name, logoUrl: m.logoUrl, websiteUrl: m.websiteUrl },
+          // Always sync isActive from this config so admin changes here take effect on restart
+          data: { name: m.name, logoUrl: m.logoUrl, websiteUrl: m.websiteUrl, isActive: m.isActive },
         });
         updated++;
       } else {
-        await this.prisma.marketplace.create({ data: { ...m, isActive: true } });
+        await this.prisma.marketplace.create({ data: m });
         created++;
       }
     }

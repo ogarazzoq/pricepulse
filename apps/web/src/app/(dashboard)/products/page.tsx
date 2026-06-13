@@ -32,6 +32,9 @@ export default function ProductsPage() {
   );
   const [inStockOnly, setInStockOnly] = useState(params.get('inStock') === 'true');
   const [page, setPage] = useState(parseInt(params.get('page') ?? '1', 10));
+
+  // Reset to page 1 whenever filters/sort change
+  useEffect(() => { setPage(1); }, [sort, marketplace, inStockOnly, debounced]);
   const pageSize = 50;
 
   useEffect(() => {
@@ -254,7 +257,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Pagination */}
-      {!isLoading && items && items.length > 0 && totalPages > 1 && !isSearching && (
+      {!isLoading && !isSearching && total > 0 && (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <PaginationInfo
             currentPage={page}
@@ -263,7 +266,7 @@ export default function ProductsPage() {
           />
           <Pagination
             currentPage={page}
-            totalPages={totalPages}
+            totalPages={Math.max(1, totalPages)}
             onPageChange={(newPage) => {
               setPage(newPage);
               window.scrollTo({ top: 0, behavior: 'smooth' });
