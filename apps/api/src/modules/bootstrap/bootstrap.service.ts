@@ -71,7 +71,7 @@ export class BootstrapService implements OnApplicationBootstrap {
       { slug: 'bestbuy',       name: 'Best Buy',          logoUrl: 'https://logo.clearbit.com/bestbuy.com',                          websiteUrl: 'https://www.bestbuy.com',           baseCurrency: 'USD', isActive: false },
       { slug: 'olcha',         name: 'Olcha.uz',          logoUrl: 'https://olcha.uz/image/original/logo.png',                       websiteUrl: 'https://olcha.uz',                  baseCurrency: 'UZS', isActive: false },
       { slug: 'amazon',        name: 'Amazon',            logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg', websiteUrl: 'https://www.amazon.com',       baseCurrency: 'USD', isActive: false },
-      { slug: 'kuai',          name: 'Kuai',              logoUrl: 'https://cdn.u-code.io/logo.png',                                 websiteUrl: 'https://api.admin.u-code.io',       baseCurrency: 'USD', isActive: true  },
+      { slug: 'kuai',          name: 'Taobao',            logoUrl: 'https://img.alicdn.com/tfs/TB1_uT8a5ERMeJjSspiXXbZLFXa-143-59.png', websiteUrl: 'https://www.taobao.com',          baseCurrency: 'USD', isActive: true  },
     ];
 
     let created = 0;

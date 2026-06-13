@@ -51,10 +51,10 @@ async function main() {
     },
     {
       slug: 'kuai',
-      name: 'Kuai',
-      logoUrl: 'https://cdn.u-code.io/logo.png',
-      websiteUrl: 'https://api.admin.u-code.io',
-      baseCurrency: 'CNY',
+      name: 'Taobao',
+      logoUrl: 'https://img.alicdn.com/tfs/TB1_uT8a5ERMeJjSspiXXbZLFXa-143-59.png',
+      websiteUrl: 'https://www.taobao.com',
+      baseCurrency: 'USD',
     },
   ];
 

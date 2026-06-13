@@ -67,7 +67,7 @@ const GROUP_BY = ['p.guid', 'pi.image_url', 'c.name_en', 'c.name_ru'];
 @Injectable()
 export class KuaiProvider extends MarketplaceProvider {
   readonly slug = 'kuai';
-  readonly displayName = 'Kuai';
+  readonly displayName = 'Taobao';
   readonly kind = 'marketplace' as const;
 
   private readonly logger = new Logger(KuaiProvider.name);
@@ -163,8 +163,8 @@ export class KuaiProvider extends MarketplaceProvider {
       brand: null,
       category: r.category_name_en || r.category_name_ru || null,
       imageUrl: r.image_url && r.image_url.length > 30 ? r.image_url : null,
-      // Link to the product on kuai.tj (not the upstream Taobao external_url)
-      url: `https://kuai.tj/ru/product/${r.guid}`,
+      // Link to the upstream Taobao listing
+      url: r.external_url || null,
       price,
       priceAvailable: price > 0,
       currency: 'USD',
