@@ -32,11 +32,31 @@ export class BootstrapService implements OnApplicationBootstrap {
   async onApplicationBootstrap() {
     try {
       await this.ensureMarketplaces();
+      await this.purgeNonKuaiData();
       await this.ensureAdminUser();
     } catch (err: any) {
       this.logger.error(`Bootstrap failed: ${err?.message ?? err}`);
       // Don't crash the app — the bootstrap is best-effort.
       // Health checks remain functional, admin can re-trigger.
+    }
+  }
+
+  private async purgeNonKuaiData() {
+    // Remove all offers from non-kuai marketplaces, then delete orphaned products.
+    // This runs once on each deploy; idempotent (nothing to delete after first run).
+    const deleted = await this.prisma.productOffer.deleteMany({
+      where: { marketplace: { slug: { not: 'kuai' } } },
+    });
+    if (deleted.count > 0) {
+      this.logger.log(`Purged ${deleted.count} non-kuai offers`);
+    }
+
+    // Delete products that have no remaining offers
+    const orphaned = await this.prisma.product.deleteMany({
+      where: { offers: { none: {} } },
+    });
+    if (orphaned.count > 0) {
+      this.logger.log(`Purged ${orphaned.count} orphaned products`);
     }
   }
 
