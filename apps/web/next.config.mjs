@@ -14,6 +14,11 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i.dummyjson.com' },
       { protocol: 'https', hostname: 'dummyjson.com' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      // Kuai / Alicdn / Poizon
+      { protocol: 'https', hostname: 'img.alicdn.com' },
+      { protocol: 'https', hostname: 'cdn.poizon.com' },
+      { protocol: 'https', hostname: 'cdn.u-code.io' },
+      { protocol: 'https', hostname: '*.alicdn.com' },
     ],
   },
   experimental: {
