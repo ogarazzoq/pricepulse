@@ -7,32 +7,27 @@ import {
   SearchOptions,
 } from './marketplace-provider.interface';
 
-interface KuaiProduct {
+interface KuaiRow {
   guid: string;
   name_ru?: string;
   name_en?: string;
   name_tg?: string;
   description_ru?: string;
   description_en?: string;
-  base_price?: number;
-  base_price_cny?: number;
+  min_price?: number;
+  max_price?: number;
   average_rating?: number;
   rating_count?: number;
   total_stock?: number;
   in_stock?: boolean;
   external_url?: string;
-  product_source?: string[];
+  image_url?: string;
   category_name_en?: string;
   category_name_ru?: string;
-  shop_name_en?: string;
-  shop_name_ru?: string;
-  images?: Array<{ image_url: string; is_primary?: boolean }>;
 }
 
-interface UcodeAggregationResponse {
-  data?: {
-    data?: KuaiProduct[];
-  };
+interface UcodeResponse {
+  data?: { data?: { data?: KuaiRow[] } };
 }
 
 const BASE_URL = 'https://api.admin.u-code.io';
@@ -45,28 +40,25 @@ const COLUMNS = [
   'p.name_tg',
   'p.description_ru',
   'p.description_en',
-  'p.base_price',
-  'p.base_price_cny',
+  'p.in_stock',
+  'p.total_stock',
+  'p.external_url',
   'p.average_rating',
   'p.rating_count',
-  'p.total_stock',
-  'p.in_stock',
-  'p.external_url',
-  'p.product_source',
+  'MIN(pv.price) as min_price',
+  'MAX(pv.price) as max_price',
+  'pi.image_url as image_url',
   'c.name_en as category_name_en',
   'c.name_ru as category_name_ru',
-  's.shop_name_en',
-  's.shop_name_ru',
-  "COALESCE(json_agg(DISTINCT jsonb_build_object('image_url', pi.image_url, 'is_primary', pi.is_primary)) FILTER (WHERE pi.guid IS NOT NULL), '[]') as images",
 ];
 
 const JOINS = [
+  { type: 'LEFT', table: 'product_variants pv', condition: 'p.guid = pv.products_id AND pv.is_active = true' },
+  { type: 'LEFT', table: 'products_images pi', condition: 'p.guid = pi.products_id AND pi.is_primary = true' },
   { type: 'LEFT', table: 'categories c', condition: 'p.categories_id = c.guid' },
-  { type: 'LEFT', table: 'shops s', condition: 'p.shops_id = s.guid' },
-  { type: 'LEFT', table: 'products_images pi', condition: 'p.guid = pi.products_id' },
 ];
 
-const GROUP_BY = ['p.guid', 'c.guid', 's.guid'];
+const GROUP_BY = ['p.guid', 'pi.image_url', 'c.name_en', 'c.name_ru'];
 
 @Injectable()
 export class KuaiProvider extends MarketplaceProvider {
@@ -90,26 +82,22 @@ export class KuaiProvider extends MarketplaceProvider {
     });
   }
 
-  private async query(where?: string, limit = 50, offset = 0): Promise<KuaiProduct[]> {
-    const body: Record<string, any> = {
+  private async query(where?: string, limit = 50): Promise<KuaiRow[]> {
+    const body = {
       data: {
         operation: 'SELECT',
         table: 'products as p',
         columns: COLUMNS,
         joins: JOINS,
-        where: `p.is_active='true'${where ? ` AND (${where})` : ''}`,
+        where: `p.is_active = true${where ? ` AND (${where})` : ''}`,
         group_by: GROUP_BY,
         limit,
-        offset,
       },
     };
 
     try {
-      const { data } = await this.http.post<UcodeAggregationResponse>(
-        '/v2/items/1/aggregation',
-        body,
-      );
-      return data?.data?.data ?? [];
+      const { data } = await this.http.post<UcodeResponse>('/v2/items/1/aggregation', body);
+      return data?.data?.data?.data ?? [];
     } catch (err: any) {
       this.logger.error(`Kuai query failed: ${err?.message}`);
       return [];
@@ -118,14 +106,14 @@ export class KuaiProvider extends MarketplaceProvider {
 
   async listAll(limit = 50): Promise<NormalizedProduct[]> {
     const rows = await this.query(undefined, limit);
-    return rows.map((p) => this.normalize(p));
+    return rows.map((r) => this.normalize(r));
   }
 
   async searchProducts(query: string, opts: SearchOptions = {}): Promise<NormalizedProduct[]> {
     const q = query.replace(/'/g, "''");
     const where = `p.name_ru ILIKE '%${q}%' OR p.name_en ILIKE '%${q}%' OR p.name_tg ILIKE '%${q}%'`;
     const rows = await this.query(where, opts.limit ?? 30);
-    return rows.map((p) => this.normalize(p));
+    return rows.map((r) => this.normalize(r));
   }
 
   async getProduct(externalId: string): Promise<NormalizedProduct | null> {
@@ -141,49 +129,35 @@ export class KuaiProvider extends MarketplaceProvider {
       externalId,
       marketplaceSlug: this.slug,
       price: product.price,
-      priceAvailable: true,
+      priceAvailable: product.priceAvailable !== false,
       currency: product.currency,
       inStock: product.inStock,
       fetchedAt: new Date(),
     };
   }
 
-  // -------------------------------------------------------------------
-
-  private normalize(p: KuaiProduct): NormalizedProduct {
-    const title = p.name_ru || p.name_en || p.name_tg || 'Untitled';
-    const description = p.description_ru || p.description_en || undefined;
-    const category = p.category_name_ru || p.category_name_en || null;
-    const brand = p.shop_name_ru || p.shop_name_en || null;
-
-    // Prefer CNY price; fall back to base_price
-    const price = Number(p.base_price_cny ?? p.base_price ?? 0);
-    const currency = p.base_price_cny ? 'CNY' : 'USD';
-
-    const primaryImage = (p.images ?? []).find((i) => i.is_primary)?.image_url
-      ?? p.images?.[0]?.image_url
-      ?? null;
-
-    const inStock = p.in_stock ?? (Number(p.total_stock) > 0);
+  private normalize(r: KuaiRow): NormalizedProduct {
+    const price = Number(r.min_price ?? 0);
+    const originalPrice = r.max_price && r.max_price > price ? Number(r.max_price) : null;
 
     return {
-      externalId: p.guid,
+      externalId: r.guid,
       marketplaceSlug: this.slug,
-      title,
-      description,
-      brand,
-      category,
-      imageUrl: primaryImage,
-      url: p.external_url || null,
+      title: r.name_en || r.name_ru || r.name_tg || 'Untitled',
+      description: r.description_en || r.description_ru || undefined,
+      brand: null,
+      category: r.category_name_en || r.category_name_ru || null,
+      imageUrl: r.image_url || null,
+      url: r.external_url || null,
       price,
       priceAvailable: price > 0,
-      currency,
-      originalPrice: null,
+      currency: 'USD',
+      originalPrice,
       discountPercent: null,
-      rating: p.average_rating ? Number(p.average_rating) : null,
-      ratingCount: p.rating_count ? Number(p.rating_count) : null,
-      inStock,
-      stockCount: p.total_stock ? Number(p.total_stock) : null,
+      rating: r.average_rating ? Number(r.average_rating) : null,
+      ratingCount: r.rating_count ? Number(r.rating_count) : null,
+      inStock: r.in_stock ?? (Number(r.total_stock) > 0),
+      stockCount: r.total_stock ? Number(r.total_stock) : null,
     };
   }
 }
