@@ -163,7 +163,8 @@ export class KuaiProvider extends MarketplaceProvider {
       brand: null,
       category: r.category_name_en || r.category_name_ru || null,
       imageUrl: r.image_url && r.image_url.length > 30 ? r.image_url : null,
-      url: null, // external_url points to Taobao; kuai.tj deep-links are not available
+      // Link to the product on kuai.tj (not the upstream Taobao external_url)
+      url: `https://kuai.tj/ru/product/${r.guid}`,
       price,
       priceAvailable: price > 0,
       currency: 'USD',
