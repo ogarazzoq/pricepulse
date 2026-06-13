@@ -35,7 +35,7 @@ export class PriceSyncProcessor extends WorkerHost {
     for (const provider of providers) {
       if (!provider.listAll) continue;
       try {
-        const items = await provider.listAll(50);
+        const items = await provider.listAll();
         for (const item of items) {
           await this.products.upsertNormalizedProduct(item);
           synced++;

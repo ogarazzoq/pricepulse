@@ -82,7 +82,7 @@ export class KuaiProvider extends MarketplaceProvider {
     });
   }
 
-  private async query(where?: string, limit = 50): Promise<KuaiRow[]> {
+  private async query(where?: string, limit = 50, offset = 0): Promise<KuaiRow[]> {
     const body = {
       data: {
         operation: 'SELECT',
@@ -92,6 +92,7 @@ export class KuaiProvider extends MarketplaceProvider {
         where: `p.is_active = true${where ? ` AND (${where})` : ''}`,
         group_by: GROUP_BY,
         limit,
+        offset,
       },
     };
 
@@ -104,9 +105,17 @@ export class KuaiProvider extends MarketplaceProvider {
     }
   }
 
-  async listAll(limit = 50): Promise<NormalizedProduct[]> {
-    const rows = await this.query(undefined, limit);
-    return rows.map((r) => this.normalize(r));
+  async listAll(_limit?: number): Promise<NormalizedProduct[]> {
+    const BATCH = 50;
+    const all: KuaiRow[] = [];
+    let offset = 0;
+    while (true) {
+      const batch = await this.query(undefined, BATCH, offset);
+      all.push(...batch);
+      if (batch.length < BATCH) break;
+      offset += BATCH;
+    }
+    return all.map((r) => this.normalize(r));
   }
 
   async searchProducts(query: string, opts: SearchOptions = {}): Promise<NormalizedProduct[]> {
