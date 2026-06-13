@@ -33,6 +33,10 @@ interface UcodeResponse {
 const BASE_URL = 'https://api.admin.u-code.io';
 const API_KEY = process.env.KUAI_API_KEY ?? 'P-1TXCwqmtp1d7fTTbtG7qkjFohkcecvoz';
 
+// Kuai has ~16k active products. Syncing all of them in one job is too slow
+// (each upsert is ~6 DB writes). Cap how many we pull per sync; override via env.
+const MAX_PRODUCTS = Number(process.env.KUAI_MAX_PRODUCTS ?? 1000);
+
 const COLUMNS = [
   'p.guid',
   'p.name_ru',
@@ -105,17 +109,19 @@ export class KuaiProvider extends MarketplaceProvider {
     }
   }
 
-  async listAll(_limit?: number): Promise<NormalizedProduct[]> {
+  async listAll(limit?: number): Promise<NormalizedProduct[]> {
+    const cap = limit ?? MAX_PRODUCTS;
     const BATCH = 50;
     const all: KuaiRow[] = [];
     let offset = 0;
-    while (true) {
+    while (all.length < cap) {
       const batch = await this.query(undefined, BATCH, offset);
       all.push(...batch);
-      if (batch.length < BATCH) break;
+      if (batch.length < BATCH) break; // reached the end of the dataset
       offset += BATCH;
     }
-    return all.map((r) => this.normalize(r));
+    this.logger.log(`Kuai listAll fetched ${Math.min(all.length, cap)} products (cap ${cap})`);
+    return all.slice(0, cap).map((r) => this.normalize(r));
   }
 
   async searchProducts(query: string, opts: SearchOptions = {}): Promise<NormalizedProduct[]> {
