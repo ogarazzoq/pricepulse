@@ -32,7 +32,7 @@ export default function ProductsPage() {
   );
   const [inStockOnly, setInStockOnly] = useState(params.get('inStock') === 'true');
   const [page, setPage] = useState(parseInt(params.get('page') ?? '1', 10));
-  const pageSize = 24;
+  const pageSize = 50;
 
   useEffect(() => {
     const t = setTimeout(() => {
