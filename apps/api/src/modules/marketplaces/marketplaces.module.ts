@@ -10,6 +10,7 @@ import { DummyJsonProvider } from './providers/dummyjson.provider';
 import { BestBuyProvider } from './providers/bestbuy.provider';
 import { OlchaProvider } from './providers/olcha.provider';
 import { AmazonProvider } from './providers/amazon.provider';
+import { KuaiProvider } from './providers/kuai.provider';
 import { UpcItemDbEnricher } from './providers/upcitemdb.enricher';
 
 @Global()
@@ -27,6 +28,7 @@ import { UpcItemDbEnricher } from './providers/upcitemdb.enricher';
     BestBuyProvider,
     OlchaProvider,
     AmazonProvider,
+    KuaiProvider,
     // Enrichment providers
     UpcItemDbEnricher,
   ],

@@ -6,6 +6,7 @@ import { DummyJsonProvider } from './providers/dummyjson.provider';
 import { BestBuyProvider } from './providers/bestbuy.provider';
 import { OlchaProvider } from './providers/olcha.provider';
 import { AmazonProvider } from './providers/amazon.provider';
+import { KuaiProvider } from './providers/kuai.provider';
 import { MarketplaceProvider } from './providers/marketplace-provider.interface';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
@@ -35,6 +36,7 @@ export class MarketplaceRegistry {
     bestBuy: BestBuyProvider,
     olcha: OlchaProvider,
     amazon: AmazonProvider,
+    kuai: KuaiProvider,
   ) {
     this.register(fakeStore);
     this.register(dummyJson);
@@ -43,6 +45,7 @@ export class MarketplaceRegistry {
     this.register(bestBuy);
     this.register(olcha);
     this.register(amazon);
+    this.register(kuai);
   }
 
   register(provider: MarketplaceProvider) {

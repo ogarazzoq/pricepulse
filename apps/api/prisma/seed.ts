@@ -49,6 +49,13 @@ async function main() {
       websiteUrl: 'https://www.bestbuy.com',
       baseCurrency: 'USD',
     },
+    {
+      slug: 'kuai',
+      name: 'Kuai',
+      logoUrl: 'https://cdn.u-code.io/logo.png',
+      websiteUrl: 'https://api.admin.u-code.io',
+      baseCurrency: 'CNY',
+    },
   ];
 
   for (const m of marketplaces) {
