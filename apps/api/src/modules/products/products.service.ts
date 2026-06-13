@@ -139,35 +139,53 @@ export class ProductsService {
     filters: SearchFilters = {},
   ) {
     const skip = (page - 1) * pageSize;
-    const where = query
-      ? {
-          OR: [
-            { title: { contains: query, mode: 'insensitive' as const } },
-            { brand: { contains: query, mode: 'insensitive' as const } },
-            { category: { contains: query, mode: 'insensitive' as const } },
-          ],
-        }
-      : undefined;
+
+    // Build a single Prisma where that covers text search + offer-level filters.
+    // All filtering happens in DB so skip/take and count are always consistent.
+    const offerConditions: Record<string, any> = {};
+    if (filters.marketplace) {
+      offerConditions.marketplace = { slug: filters.marketplace };
+    }
+    if (filters.inStock != null) {
+      offerConditions.inStock = filters.inStock;
+    }
+
+    const hasOfferFilter = Object.keys(offerConditions).length > 0;
+
+    const where: any = {
+      // Only show products that have at least one matching offer
+      offers: { some: hasOfferFilter ? offerConditions : {} },
+      ...(query && {
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { brand: { contains: query, mode: 'insensitive' } },
+          { category: { contains: query, mode: 'insensitive' } },
+        ],
+      }),
+    };
 
     const [items, total] = await Promise.all([
       this.repo.list({ skip, take: pageSize, where }),
       this.repo.count(where),
     ]);
 
-    const filtered = items
+    // Offers are still filtered client-side for display (hide non-matching marketplace offers
+    // within a product card), but the product set and total are now DB-accurate.
+    const serialized = items
       .map((p) => ({
         ...p,
-        offers: p.offers.filter((o: any) => {
-          if (filters.marketplace && o.marketplace.slug !== filters.marketplace) return false;
-          if (filters.inStock != null && o.inStock !== filters.inStock) return false;
-          return true;
-        }),
+        offers: hasOfferFilter
+          ? p.offers.filter((o: any) => {
+              if (filters.marketplace && o.marketplace.slug !== filters.marketplace) return false;
+              if (filters.inStock != null && o.inStock !== filters.inStock) return false;
+              return true;
+            })
+          : p.offers,
       }))
-      .filter((p) => p.offers.length > 0)
       .map((p) => this.serialize(p))
       .sort(this.comparator(filters.sort ?? ProductSort.NEWEST));
 
-    return { items: filtered, total, page, pageSize };
+    return { items: serialized, total, page, pageSize };
   }
 
   // -------------------------------------------------------------------

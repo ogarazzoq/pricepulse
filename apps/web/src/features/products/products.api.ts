@@ -77,7 +77,7 @@ export interface ProductCatalogResponse {
 export const productsApi = {
   search: (params: ProductSearchParams) =>
     api.get<ProductSearchResponse>('/products/search', { params }).then((r) => r.data),
-  list: (params: { page?: number; pageSize?: number; q?: string; sort?: ProductSort; marketplace?: string } = {}) =>
+  list: (params: { page?: number; pageSize?: number; q?: string; sort?: ProductSort; marketplace?: string; inStock?: boolean } = {}) =>
     api.get<ProductCatalogResponse>('/products', { params }).then((r) => r.data),
   byId: (id: string) => api.get<Product>(`/products/${id}`).then((r) => r.data),
 };

@@ -28,6 +28,7 @@ export class ProductsController {
     return this.products.listCatalog(dto.page, dto.pageSize, dto.q, {
       sort: dto.sort,
       marketplace: dto.marketplace,
+      inStock: dto.inStock,
     });
   }
 

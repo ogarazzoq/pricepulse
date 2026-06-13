@@ -73,13 +73,14 @@ export default function ProductsPage() {
   });
 
   const catalog = useQuery({
-    queryKey: ['products-catalog', sort, marketplace, page],
+    queryKey: ['products-catalog', sort, marketplace, inStockOnly, page, pageSize],
     queryFn: () =>
       productsApi.list({
         page,
         pageSize,
         sort: sort === 'relevance' ? 'newest' : sort,
         marketplace,
+        inStock: inStockOnly || undefined,
       }),
     enabled: !isSearching,
     placeholderData: keepPreviousData,

@@ -1,4 +1,5 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { ProductSort } from './search-products.dto';
 
@@ -14,4 +15,9 @@ export class ListProductsDto extends PaginationDto {
   @IsOptional()
   @IsString()
   marketplace?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  inStock?: boolean;
 }
